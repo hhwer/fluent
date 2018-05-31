@@ -28,6 +28,10 @@ class Mymat
 		void createfactor(int n, double mu);
 		void dividefactor();
 		void multipfactor();
+		void trdFFT(Mymat &mat1, int i, int j, int k);
+		void trdIFFT(Mymat &mat1, int i, int j, int k);
+		void Laplace(Mymat &mat1, int i, int j, int k);
+		void InverseLaplace(Mymat &mat1, int i, int j, int k);
 		void getF(int N);
 		void getF1(int N);
 		void getvalue();
@@ -38,9 +42,11 @@ class Mymat
 		void retrans_x(Mymat &mat1);
 		void retrans_y(Mymat &mat1);
 		void retrans_z(Mymat &mat1);
-	
-		void fft();
-		void ifft();
+
+		void getVW(Mymat &mat1, Mymat &mat2);
+
+		void fft(int k);
+		void ifft(int k);
 		
 		double norm_inf();
 
@@ -54,7 +60,8 @@ class Mymat
 		Mymat& operator^=(int q);
 
 		fftw_complex* ele;
-
+		fftw_complex* temp;
+		
 		std::vector<double> factor;
 	
 	protected:
@@ -99,6 +106,13 @@ class Mymat
 		MPI::Datatype zcolumn0_type;
 		MPI::Datatype zmatrix0_type;
 		MPI::Datatype ztensor0_type;
+		MPI::Datatype utensor2_type;
+		MPI::Datatype vcolumn2_type;
+		MPI::Datatype vmatrix2_type;
+		MPI::Datatype vtensor2_type;
+		MPI::Datatype wcolumn2_type;
+		MPI::Datatype wmatrix2_type;
+		MPI::Datatype wtensor2_type;
 };
 
 #endif

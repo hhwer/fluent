@@ -157,9 +157,19 @@ void Mymat::createfactor(int N,double mu)
 /* ----------------------------------------------------------------------------*/
 void Mymat::dividefactor(void)
 {
-	double* p = &ele[0][0];
-	double* f = &factor[0];
-	for(int i=0;i<size_l*size_m*size_n-1;i++)
+	if (factor[0]==0)
+	{
+		ele[0][0] = 0.0;
+		ele[0][1] = 0.0;
+	}
+	else
+	{
+		ele[0][0] /= factor[0];
+		ele[0][1] /= factor[0];
+	}
+	double* p = &ele[1][0];
+	double* f = &factor[1];
+	for(int i=1;i<size_l*size_m*size_n-1;i++)
 	{
 		*p /= *f;
 		p++;
@@ -192,6 +202,73 @@ void Mymat::multipfactor(void)
 	*p *= *f;
 	p++;
 	*p *= *f;
+}
+
+/* --------------------------------------------------------------------------*/
+/**
+* @brief 做3d_fft
+*
+* @param mat0 数据存贮矩阵
+* @param mat1 用来计算FFT的容器
+*/
+/* ----------------------------------------------------------------------------*/
+void Mymat::trdFFT(Mymat &mat1,int i, int j, int k)
+{
+		this->trans_x(mat1);
+		mat1.fft(i);
+		this->retrans_x(mat1);
+		this->trans_y(mat1);
+		mat1.fft(j);
+		this->retrans_y(mat1);
+		this->trans_z(mat1);
+		mat1.fft(k);
+		this->retrans_z(mat1);
+
+}
+
+
+/* --------------------------------------------------------------------------*/
+/**
+* @brief 做3d_ifft
+*
+* @param mat0 数据存贮矩阵
+* @param mat1 用来计算FFT的容器
+*/
+/* ----------------------------------------------------------------------------*/
+void Mymat::trdIFFT(Mymat &mat1, int i, int j, int k)
+{
+		this->trans_x(mat1);
+		mat1.ifft(i);
+		this->retrans_x(mat1);
+		this->trans_y(mat1);
+		mat1.ifft(j);
+		this->retrans_y(mat1);
+		this->trans_z(mat1);
+		mat1.ifft(k);
+		this->retrans_z(mat1);
+//除N^3
+		double alpha = pow(mat1.size_l*2-2,3);
+		double* p = &ele[0][0];
+		for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+		{
+			*p /= alpha;
+			p++;
+		}
+		*p /= alpha;
+}
+
+void Mymat::Laplace(Mymat &mat1, int i, int j, int k)
+{
+	this->trdFFT(mat1,i,j,k);
+	this->multipfactor();
+	this->trdIFFT(mat1,i,j,k);
+}
+
+void Mymat::InverseLaplace(Mymat &mat1, int i, int j, int k)
+{
+	this->trdFFT(mat1,i,j,k);
+	this->dividefactor();
+	this->trdIFFT(mat1,i,j,k);
 }
 /* --------------------------------------------------------------------------*/
 /**

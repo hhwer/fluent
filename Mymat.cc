@@ -1,4 +1,4 @@
-/**
+/*
 * @file Mymat.cc
 * @brief class Mymat implement
 * @author hh
@@ -25,8 +25,16 @@ Mymat::Mymat(int l, int m, int n )
 	size_n = n;
 	status = 0;
 	ele = (fftw_complex*) malloc( sizeof(fftw_complex)*l*m*n );
+	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(l*2-2));
 	double* p=&ele[0][0];
 	for(int i=0;i<2*l*m*n-1;i++)
+	{
+		*p = 0.0;
+		p++;
+	}
+	*p = 0.0;
+	p = &temp[0][0];
+	for(int i=0;i<2*(l*2-2)-1;i++)
 	{
 		*p = 0.0;
 		p++;
@@ -43,6 +51,7 @@ Mymat::Mymat(int l, int m, int n,int num)
 	status = 0;
 	double num0 = (double)num; 
 	ele = (fftw_complex*) malloc( sizeof(fftw_complex)*l*m*n );
+	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(l*2-2));
 	double* p=&ele[0][0];
 	for(int i=0;i<2*l*m*n-1;i++)
 	{
@@ -50,6 +59,13 @@ Mymat::Mymat(int l, int m, int n,int num)
 		p++;
 	}
 	*p = num0;
+	p = &temp[0][0];
+	for(int i=0;i<2*(l*2-2)-1;i++)
+	{
+		*p = 0.0;
+		p++;
+	}
+	*p = 0.0;
 }
 
 
@@ -66,10 +82,20 @@ Mymat::Mymat(Mymat& mat1)
 		*p = 0.0;
 		p++;
 	}
+	*p = 0.0;
+	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(size_l*2-2));
+	p = &temp[0][0];
+	for(int i=0;i<2*(size_l*2-2)-1;i++)
+	{
+		*p = 0.0;
+		p++;
+	}
+	*p = 0.0;
 }
 Mymat::~Mymat(void)
 	{
 		free(ele);
+		free(temp);
 		if(status)
 		{
 			typefree();
@@ -149,34 +175,56 @@ void Mymat::outposition(void)
 void Mymat::createtype(int n)
 {
 	status = 1;
-	 byte_type = MPI::DOUBLE.Create_vector(1, 2, 2);
+	byte_type = MPI::DOUBLE.Create_vector(1, 2, 2);
 	byte_type.Commit();
 
-	 tensor1_type = byte_type.Create_vector(n*n/size, n, n*size);
+	tensor1_type = byte_type.Create_vector(n*n/size, n, n*size);
 	tensor1_type.Commit();
 
-	 xtensor0_type = byte_type.Create_vector(1, n*n*n/size, 0);
+	xtensor0_type = byte_type.Create_vector(1, n*n*n/size, 0);
 	xtensor0_type.Commit();
 
-	 ycolumn0_type = byte_type.Create_vector(n, 1, n);
+
+	ycolumn0_type = byte_type.Create_vector(n, 1, n);
 	ycolumn0_type.Commit();
 
-	 ymatrix0_type = ycolumn0_type.Create_hvector(n, 1, sizeof(fftw_complex));
+	ymatrix0_type = ycolumn0_type.Create_hvector(n, 1, sizeof(fftw_complex));
 	ymatrix0_type.Commit();
 
-	 ytensor0_type = ymatrix0_type.Create_vector(n/size, 1, 1);
+	ytensor0_type = ymatrix0_type.Create_vector(n/size, 1, 1);
 	ytensor0_type.Commit();
 	
 	
-	 zcolumn0_type = byte_type.Create_vector(n, 1, n*n);
+	zcolumn0_type = byte_type.Create_vector(n, 1, n*n);
 	zcolumn0_type.Commit();
 
-	 zmatrix0_type = zcolumn0_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	zmatrix0_type = zcolumn0_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
 	zmatrix0_type.Commit();
 
-	 ztensor0_type = zmatrix0_type.Create_hvector(n/size, 1, 										n*sizeof(fftw_complex));
+	ztensor0_type = zmatrix0_type.Create_hvector(n/size, 1, 										n*sizeof(fftw_complex));
 	ztensor0_type.Commit();
 
+	utensor2_type = byte_type.Create_vector(1, n*n*n, 0);
+	utensor2_type.Commit();
+
+	vcolumn2_type = byte_type.Create_vector(n, 1, n);
+	vcolumn2_type.Commit();
+
+	vmatrix2_type = vcolumn2_type.Create_hvector(n, 1, 											n*n*sizeof(fftw_complex));
+	vmatrix2_type.Commit();
+	
+	vtensor2_type = vmatrix2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	vtensor2_type.Commit();
+
+
+	wcolumn2_type = byte_type.Create_vector(n, 1, n*n);
+	wcolumn2_type.Commit();
+
+	wmatrix2_type = wcolumn2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	wmatrix2_type.Commit();
+	   
+	wtensor2_type = wmatrix2_type.Create_hvector(n, 1, 											n*sizeof(fftw_complex));
+	wtensor2_type.Commit();
 }
 
 void Mymat::typefree()
@@ -191,6 +239,14 @@ void Mymat::typefree()
 	zcolumn0_type.Free();
 	zmatrix0_type.Free();
 	ztensor0_type.Free();
+	
+	utensor2_type.Free();
+	vcolumn2_type.Free();
+	vmatrix2_type.Free();
+	vtensor2_type.Free();
+	wcolumn2_type.Free();
+	wmatrix2_type.Free();
+	wtensor2_type.Free();
 }
 
 
@@ -334,18 +390,54 @@ void Mymat::retrans_z(Mymat &mat1)
 	}
 }
 
+
+/* --------------------------------------------------------------------------*/
+/**
+* @brief 从相应的块U里获得V,W
+*
+* @param mat1 存储V
+* @param mat2 存储W
+*/
+/* ----------------------------------------------------------------------------*/
+void Mymat::getVW(Mymat &mat1, Mymat &mat2)
+{
+	std::cout<<myid<<' '<<myorder[0]*size*size+myorder[1]*size+myorder[2]<<' '<<myorder[1]*size*size+myorder[2]*size+myorder[0]<<std::endl;
+    MPI::COMM_WORLD.Sendrecv(														ele, 1, vtensor2_type, myid, 99,mat1.ele, 1, utensor2_type, 				myorder[1]*size*size+myorder[2]*size+myorder[0], 99);
+
+//	MPI::COMM_WORLD.Sendrecv(														ele, 1, wtensor2_type, myid, 99,mat2.ele, 1, utensor2_type, 				myorder[2]*size*size+myorder[0]*size+myorder[1], 99);
+}
+
+
 /* --------------------------------------------------------------------------*/
 /**
 * @brief 沿x方向对每个向量做fft
+* 		 k=-1,1对应反对称,对称两种情形
 */
 /* ----------------------------------------------------------------------------*/
-void Mymat::fft(void)
+void Mymat::fft(int k)
 {
 	fftw_plan p;
 	for(int i=0;i<size_m*size_n;i++)
 	{
-		p = fftw_plan_dft_1d(size_l, &ele[i*size_l], 											&ele[i*size_l], FFTW_FORWARD, FFTW_ESTIMATE);
+		temp[0][0] = ele[i*size_l][0];
+		temp[0][1] = ele[i*size_l][1];
+		for(int j =1;j<size_l-1;j++)
+		{
+			temp[j][0] = ele[i*size_l+j][0];
+			temp[j][1] = ele[i*size_l+j][1];
+			temp[2*size_l-2-j][0] = k * temp[j][0];
+			temp[2*size_l-2-j][1] = k * temp[j][1];
+		}
+		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
+		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
+		
+		p = fftw_plan_dft_1d(size_l, temp, 											temp, FFTW_FORWARD, FFTW_ESTIMATE);
 		fftw_execute(p);
+		for(int j=0;j<size_l;j++)
+		{
+			ele[i*size_l+j][0] = temp[j][0];
+			ele[i*size_l+j][1] = temp[j][1];
+		}
 	}
 	fftw_free(p);
 }
@@ -354,15 +446,34 @@ void Mymat::fft(void)
 /* --------------------------------------------------------------------------*/
 /**
 * @brief x方向每个向量ifft
+* 		 k=-1,1对应反对称,对称两种情形
 */
 /* ----------------------------------------------------------------------------*/
-void Mymat::ifft(void)
+void Mymat::ifft(int k)
 {
 	fftw_plan p;
 	for(int i=0;i<size_m*size_n;i++)
-	{
-		p = fftw_plan_dft_1d(size_l, &ele[i*size_l], 											&ele[i*size_l], FFTW_BACKWARD, FFTW_ESTIMATE);
+	{	
+		temp[0][0] = ele[i*size_l][0];
+		temp[0][1] = ele[i*size_l][1];
+		for(int j =1;j<size_l-1;j++)
+		{
+			temp[j][0] = ele[i*size_l+j][0];
+			temp[j][1] = ele[i*size_l+j][1];
+			temp[2*size_l-2-j][0] = k * temp[j][0];
+			temp[2*size_l-2-j][1] = k * temp[j][1];
+		}
+		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
+		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
+		
+		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_BACKWARD, FFTW_ESTIMATE);
 		fftw_execute(p);
+	
+		for(int j=0;j<size_l;j++)
+		{
+			ele[i*size_l+j][0] = temp[j][0];
+			ele[i*size_l+j][1] = temp[j][1];
+		}
 	}
 	fftw_free(p);
 }

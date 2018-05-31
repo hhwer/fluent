@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 	int n,Max,myid,totalsize,size;
 	time_t start,stop,start1,stop1;
 	double err[2],total[2];
-	double mu=1.5;
+	double mu=0;
 	int N=pow(2,4);
 	if(argc>1)
 	{
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
 	Max = 1000;
-	double n3 = pow(N,3);
+//	double n3 = pow(N,3);
 	start = clock();
 	start1 = time(NULL);
 
@@ -33,10 +33,11 @@ int main(int argc, char** argv)
 	{
 	}
 
-
 	Mymat mat0(n,n,n,0);
 	Mymat mat1(N,n,n/size);
-	Mymat U(n,n,n);
+	Mymat U(n,n,n,0);
+	Mymat V(n,n,n);
+	Mymat W(n,n,n);
 	Mymat F(n,n,n);
 	mat0.rank(myid,size);
 	mat1.rank(myid,size);
@@ -55,37 +56,38 @@ int main(int argc, char** argv)
 		
 		mat0^=3;
 		mat0 = ((mat0-F)-(U*mu));
-
-		//3d-fft
-		mat0.trans_x(mat1);
-		mat1.fft();
-		mat0.retrans_x(mat1);
-		mat0.trans_y(mat1);
-		mat1.fft();
-		mat0.retrans_y(mat1);
-		mat0.trans_z(mat1);
-		mat1.fft();
-
-		mat0.retrans_z(mat1);
-		mat0.dividefactor();
-//		mat0.multipfactor();
-
-		mat0.trans_x(mat1);
-		//ifft
-		mat1.ifft();
-
-		mat0.retrans_x(mat1);
-		mat0.trans_y(mat1);
-		//ifft
-		mat1.ifft();
-
-		mat0.retrans_y(mat1);
-		mat0.trans_z(mat1);
-		//ifft
-		mat1.ifft();
-
-		mat0.retrans_z(mat1);
-		mat0/=n3;
+		mat0.getVW(V,W);
+//		//3d-fft
+	
+//		mat0.trans_x(mat1);
+//		mat1.fft();
+//		mat0.retrans_x(mat1);
+//		mat0.trans_y(mat1);
+//		mat1.fft();
+//		mat0.retrans_y(mat1);
+//		mat0.trans_z(mat1);
+//		mat1.fft();
+//
+//		mat0.retrans_z(mat1);
+//		mat0.dividefactor();
+////		mat0.multipfactor();
+//
+//		mat0.trans_x(mat1);
+//		//ifft
+//		mat1.ifft();
+//
+//		mat0.retrans_x(mat1);
+//		mat0.trans_y(mat1);
+//		//ifft
+//		mat1.ifft();
+//
+//		mat0.retrans_y(mat1);
+//		mat0.trans_z(mat1);
+//		//ifft
+//		mat1.ifft();
+//
+//		mat0.retrans_z(mat1);
+//		mat0/=n3;
 		
 
 		
