@@ -401,8 +401,8 @@ void Mymat::retrans_z(Mymat &mat1)
 /* ----------------------------------------------------------------------------*/
 void Mymat::getVW(Mymat &mat1, Mymat &mat2)
 {
-	std::cout<<myid<<' '<<myorder[0]*size*size+myorder[1]*size+myorder[2]<<' '<<myorder[1]*size*size+myorder[2]*size+myorder[0]<<std::endl;
-    MPI::COMM_WORLD.Sendrecv(														ele, 1, vtensor2_type, myid, 99,mat1.ele, 1, utensor2_type, 				myorder[1]*size*size+myorder[2]*size+myorder[0], 99);
+//	std::cout<<myid<<' '<<myorder[0]*size*size+myorder[1]*size+myorder[2]<<' '<<myorder[1]*size*size+myorder[2]*size+myorder[0]<<std::endl;
+    MPI::COMM_WORLD.Sendrecv(														ele, 1, vtensor2_type, 														myorder[1]*size*size+myorder[2]*size+myorder[0], 99,						mat1.ele, 1, utensor2_type, 												myorder[2]*size*size+myorder[0]*size+myorder[1], 99);
 
 //	MPI::COMM_WORLD.Sendrecv(														ele, 1, wtensor2_type, myid, 99,mat2.ele, 1, utensor2_type, 				myorder[2]*size*size+myorder[0]*size+myorder[1], 99);
 }
