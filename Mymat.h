@@ -9,6 +9,7 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
+#include <string.h>
 
 class Mymat
 {
@@ -25,15 +26,22 @@ class Mymat
 		void outposition();
 		void createtype(int n);
 		void typefree();
-		void createfactor(int n, double mu);
+		void createfactor(void);
 		void dividefactor();
 		void multipfactor();
+		void multipfactory();
+		void multipfactorz();
+		void fft(int k);
+		void ifft(int k);
 		void trdFFT(Mymat &mat1, int i, int j, int k);
 		void trdIFFT(Mymat &mat1, int i, int j, int k);
 		void Laplace(Mymat &mat1, int i, int j, int k);
 		void InverseLaplace(Mymat &mat1, int i, int j, int k);
+		void NablaTimes(Mymat &V, Mymat &W, Mymat &mat1, int i, int j);
+		void Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3);	
 		void getF(int N);
 		void getF1(int N);
+		void getU0(int N);
 		void getvalue();
 
 		void trans_x(Mymat &mat1);
@@ -45,8 +53,6 @@ class Mymat
 
 		void getVW(Mymat &mat1, Mymat &mat2);
 
-		void fft(int k);
-		void ifft(int k);
 		
 		double norm_inf();
 
@@ -54,6 +60,7 @@ class Mymat
 		Mymat& operator=(const Mymat& mat1);
 		Mymat& operator/=(double alpha);
 		Mymat operator-(const Mymat& mat1) const;
+		Mymat operator+(const Mymat& mat1) const;
 		Mymat operator*(double alpha) const;
 
 		//(u^=2)  =  abs(u)^2*u  
@@ -64,6 +71,7 @@ class Mymat
 		
 		std::vector<double> factor;
 	
+		void myprint(int a, int b);
 	protected:
 		//the buff to send
 		double* inbuff_x(int i);
@@ -77,7 +85,6 @@ class Mymat
 
 
 
-		void myprint(void);
 
 
 		

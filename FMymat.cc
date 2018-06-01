@@ -2,207 +2,6 @@
 #include "Mymat.h"
 
 
-/* --------------------------------------------------------------------------*/
-/**
-* @brief 从\Delta U-\mu U的fourier系数得到U的傅里叶系数所需的除数
-*
-* @param N  单个方向的规模
-* @param mu	
-*/
-/* ----------------------------------------------------------------------------*/
-void Mymat::createfactor(int N,double mu)
-{
-	factor.resize(size_l*size_m*size_n);
-	if(2*myorder[2]<size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] = 											-pow((myorder[2]*size_l+i),2) - mu;
-				}
-			}
-		}
-	}
-	else if(2*myorder[2]>size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] = 											-pow((myorder[2]*size_l+i-N),2) - mu;
-				}
-			}
-		}
-
-	}
-	else
-	{	
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l/2;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] = 											-pow((myorder[2]*size_l+i),2) - mu;
-				}
-				for(int i=size_l/2;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] = 											-pow((myorder[2]*size_l+i-N),2) - mu;
-				}
-			}
-		}
-	 }
-	
-
-	if(2*myorder[1]<size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j),2);
-				}
-			}
-		}
-	}
-	else if(2*myorder[1]>size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j-N),2);
-				}
-			}
-		}
-
-	}
-	else
-	{	
-		for(int k=0;k<size_n;k++)
-		{
-			for(int i=0;i<size_l;i++)
-			{
-				for(int j=0;j<size_m/2;j++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j),2);
-				}
-				for(int j=size_m/2;j<size_m;j++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j-N),2);
-				}
-			}
-		}
-	}
-
-	if(2*myorder[0]<size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k),2);
-				}
-			}
-		}
-	}
-	else if(2*myorder[0]>size-1)
-	{
-		for(int k=0;k<size_n;k++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int i=0;i<size_l;i++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k-N),2);
-				}
-			}
-		}
-
-	}
-	else
-	{	
-		for(int i=0;i<size_l;i++)
-		{
-			for(int j=0;j<size_m;j++)
-			{
-				for(int k=0;k<size_n/2;k++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k),2);
-				}
-				for(int k=size_n/2;k<size_n;k++)
-				{
-					factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k-N),2);
-				}
-			}
-		}
-	}
-}
-
-/* --------------------------------------------------------------------------*/
-/**
-* @brief 从\Delta U -\mu U的fourier得到U的fourier
-*/
-/* ----------------------------------------------------------------------------*/
-void Mymat::dividefactor(void)
-{
-	if (factor[0]==0)
-	{
-		ele[0][0] = 0.0;
-		ele[0][1] = 0.0;
-	}
-	else
-	{
-		ele[0][0] /= factor[0];
-		ele[0][1] /= factor[0];
-	}
-	double* p = &ele[1][0];
-	double* f = &factor[1];
-	for(int i=1;i<size_l*size_m*size_n-1;i++)
-	{
-		*p /= *f;
-		p++;
-		*p /= *f;
-		p++;
-		f++;
-//		ele[i][0] /= factor[i];
-//		ele[i][1] /= factor[i];
-	}
-	*p /= *f;
-	p++;
-	*p /= *f;
-}
-
-
-void Mymat::multipfactor(void)
-{
-	double* p = &ele[0][0];
-	double* f = &factor[0];
-	for(int i=0;i<size_l*size_m*size_n-1;i++)
-	{
-		*p *= *f;
-		p++;
-		*p *= *f;
-		p++;
-		f++;
-//		ele[i][0] /= factor[i];
-//		ele[i][1] /= factor[i];
-	}
-	*p *= *f;
-	p++;
-	*p *= *f;
-}
 
 /* --------------------------------------------------------------------------*/
 /**
@@ -229,10 +28,11 @@ void Mymat::trdFFT(Mymat &mat1,int i, int j, int k)
 
 /* --------------------------------------------------------------------------*/
 /**
-* @brief 做3d_ifft
+* @brief 做3d_ifft   包含了/N^3
 *
 * @param mat0 数据存贮矩阵
 * @param mat1 用来计算FFT的容器
+* @param i,j,k 三个方向上的对称性
 */
 /* ----------------------------------------------------------------------------*/
 void Mymat::trdIFFT(Mymat &mat1, int i, int j, int k)
@@ -270,6 +70,74 @@ void Mymat::InverseLaplace(Mymat &mat1, int i, int j, int k)
 	this->dividefactor();
 	this->trdIFFT(mat1,i,j,k);
 }
+
+
+/* --------------------------------------------------------------------------*/
+/**
+* @brief nable \times u
+*
+* @param V  用来存储第二个分量
+* @param W	用来存储第三个分量 并且存储结果
+* @param mat1 做fft的容器
+* @param i	V在z上的对称性 1 对称 -1反对称
+* @param j	W在y上的的对称性
+*
+* @returns   
+*/
+/* ----------------------------------------------------------------------------*/
+void Mymat::NablaTimes(Mymat &V, Mymat &W, Mymat &mat1,									int i, int j)
+{
+	double alpha = mat1.size_l*2-2;
+	this->getVW(V,W);
+	W.trans_y(mat1);
+	mat1.fft(j);
+	W.retrans_y(mat1);
+	W.multipfactory();
+	W.trans_y(mat1);
+	mat1.ifft(-j);
+	W.retrans_y(mat1);
+
+	V.trans_z(mat1);
+	mat1.fft(i);
+	V.retrans_z(mat1);
+	V.multipfactorz();
+	V.trans_z(mat1);
+	mat1.ifft(-i);
+	V.retrans_z(mat1);
+	
+	W= W-V;
+	double* p = &W.ele[0][0];
+	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	{
+		*p /= alpha;
+		p++;
+	}
+	*p /= alpha;
+}
+	
+void Mymat::Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3)
+{
+	int num;
+	this->getVW(V,W);
+	Omega1.getVW(Omega2,Omega3);
+	for(int k=0;k<size_n;k++)
+	{
+		for(int j=0;j<size_m;j++)
+		{
+			for(int i=0;i<size_l;i++)
+			{
+				num = i+j*size_l+k*size_l*size_m;
+				ele[num][0] = Omega2.ele[num][0]*W.ele[num][0] 					- Omega2.ele[num][1]*W.ele[num][1] - Omega3.ele[num][0]*V.ele[num][0] 		+ Omega3.ele[num][1]*V.ele[num][1];
+				ele[num][1] = Omega2.ele[num][0]*W.ele[num][1] 					+ Omega2.ele[num][1]*W.ele[num][0] - Omega3.ele[num][0]*V.ele[num][1] 		- Omega3.ele[num][1]*V.ele[num][0];
+			}
+		}
+	}
+
+
+
+
+}
+
 /* --------------------------------------------------------------------------*/
 /**
 * @brief 生成右端项
@@ -317,10 +185,22 @@ void Mymat::getF1(int N)
 			}
 		}
 	}
-
 }
 
 
+void Mymat::getU0(int N)
+{
+	for(int k=0;k<size_n;k++)
+	{
+		for(int j=0;j<size_m;j++)
+		{
+			for(int i=0;i<size_l;i++)
+			{
+				ele[i+j*size_l+k*size_l*size_m][0] = 												(myorder[2]*size_l+i+1)*(myorder[1]*size_m+j+1)*(myorder[0]*size_n+k+1);
+			}
+		}
+	}
+}
 void Mymat::getvalue(void)
 {
 	for(int k=0;k<size_n;k++)

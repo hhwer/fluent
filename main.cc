@@ -5,17 +5,17 @@
 int main(int argc, char** argv)
 {
 	int n,Max,myid,totalsize,size;
-	time_t start,stop,start1,stop1;
-	double err[2],total[2];
-	double mu=0;
-	int N=pow(2,4);
+	double tau=0.01, nu=0.1;
+	int N=pow(2,2);
 	if(argc>1)
 	{
 		N = atoi(argv[1]);
-		if(argc>2)
-			mu = atof(argv[2]);
 	}
 
+	int aaa =0;
+	while(aaa==1);
+	{
+	}
 
 
 	MPI::Init(argc, argv);
@@ -25,101 +25,114 @@ int main(int argc, char** argv)
 	n = N/size;
 	Max = 1000;
 //	double n3 = pow(N,3);
-	start = clock();
-	start1 = time(NULL);
 
-	int aaa =0;
-	while(aaa==1);
-	{
-	}
 
-	Mymat mat0(n,n,n,0);
 	Mymat mat1(N,n,n/size);
-	Mymat U(n,n,n,0);
+	Mymat U(n,n,n);
 	Mymat V(n,n,n);
 	Mymat W(n,n,n);
-	Mymat F(n,n,n);
-	mat0.rank(myid,size);
-	mat1.rank(myid,size);
-	F.rank(myid,size);
+	Mymat Omega1(n,n,n,0);
+	Mymat Omega2(n,n,n);
+	Mymat Omega3(n,n,n);
 	U.rank(myid,size);
-	mat0.createtype(n);
-	F.getF(N);			//题目的右端项
-//	F.getF1(N);         //真解为sinx+icosx时对应的右端项
-	mat0.outposition();
+	V.rank(myid,size);
+	W.rank(myid,size);
+	Omega1.rank(myid,size);
+	Omega2.rank(myid,size);
+	Omega3.rank(myid,size);
+	mat1.rank(myid,size);
+	U.createtype(n);
+	V.createtype(n);
+	W.createtype(n);
+	Omega1.createtype(n);
+	Omega2.createtype(n);
+	Omega3.createtype(n);
+	U.outposition();
+	V.outposition();
+	W.outposition();
+	Omega1.outposition();
+	Omega2.outposition();
+	Omega3.outposition();
 	mat1.inposition();
-	mat0.createfactor(N,mu);
-	
+	U.createfactor();
+	V.createfactor();
+
+
+//mat0.getU0(N);
+//	mat0.getvalue();
+//	mat0.getVW(V,W);	
+//	mat0.myprint(1,1);
+//	V.myprint(1,2);
+//	W.myprint(1,3);
+
+
+
 	for(int j=0;j<Max;j++)
-    {	
-		U = mat0;
-		
-		mat0^=3;
-		mat0 = ((mat0-F)-(U*mu));
-		mat0.getVW(V,W);
-//		//3d-fft
+	{	
+		// -laplace psi = omega  (psi 存储在U中)
+		U = Omega1;
+		U.InverseLaplace(mat1,1,-1,-1);
+		U = U*(-1);
 	
-//		mat0.trans_x(mat1);
-//		mat1.fft();
-//		mat0.retrans_x(mat1);
-//		mat0.trans_y(mat1);
-//		mat1.fft();
-//		mat0.retrans_y(mat1);
-//		mat0.trans_z(mat1);
-//		mat1.fft();
-//
-//		mat0.retrans_z(mat1);
-//		mat0.dividefactor();
-////		mat0.multipfactor();
-//
-//		mat0.trans_x(mat1);
-//		//ifft
-//		mat1.ifft();
-//
-//		mat0.retrans_x(mat1);
-//		mat0.trans_y(mat1);
-//		//ifft
-//		mat1.ifft();
-//
-//		mat0.retrans_y(mat1);
-//		mat0.trans_z(mat1);
-//		//ifft
-//		mat1.ifft();
-//
-//		mat0.retrans_z(mat1);
-//		mat0/=n3;
+		//W = nabla \times psi
+		U.getVW(V,W);
+		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+		U = W;
+	
+		//u = omega \times u
+		Omega1.getVW(Omega2,Omega3);
+		U.getVW(V,W);
+		U.Times(V,W,Omega1,Omega2,Omega3);
+		//W =nabla \times U
+		U.NablaTimes(U,V,mat1,1,1);
+	
+		//V 存储 laplace omega
+		V = Omega1;
+		V.Laplace(mat1,1,-1,-1);
 		
-
+		V = V*nu - U;
 		
-
-		
-
-
-
-		err[0] = (U-mat0).norm_inf();
-		err[1] = U.norm_inf();
-		MPI::COMM_WORLD.Allreduce(err, total, 2, MPI_DOUBLE, MPI_MAX);
+		Omega1 = Omega1 + V*tau;
 		if(myid==0)
-		{
-			std::cout << "relative err= " << total[0]/(total[1]) << " ,err="					<< total[0]	<< " inf_U= "<< total[1] << std::endl;
-		}
-		
-		if(total[0]/total[1]<1e-24 || total[0]==0) 
-		{
-			stop = clock();
-			stop1 = time(NULL);
-			if(myid==0)
-			{
-				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
-				std::cout << "time:" << 														(stop1-start1)<< std::endl;
-				std::cout << "ite:" << j+1 << std::endl;
-			}
-			break;
-		}
-  	
+		std::cout<<j<<std::endl;
 	}
-	
-	mat0.typefree();
+//		
+//
+//		
+//
+//		
+//
+//
+//
+//		err[0] = (U-mat0).norm_inf();
+//		err[1] = U.norm_inf();
+//		MPI::COMM_WORLD.Allreduce(err, total, 2, MPI_DOUBLE, MPI_MAX);
+//		if(myid==0)
+//		{
+//			std::cout << "relative err= " << total[0]/(total[1]) << " ,err="					<< total[0]	<< " inf_U= "<< total[1] << std::endl;
+//		}
+//		
+//		if(total[0]/total[1]<1e-24 || total[0]==0) 
+//		{
+//			stop = clock();
+//			stop1 = time(NULL);
+//			if(myid==0)
+//			{
+//				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
+//				std::cout << "time:" << 														(stop1-start1)<< std::endl;
+//				std::cout << "ite:" << j+1 << std::endl;
+//			}
+//			break;
+//		}
+//  	
+//	}
+	U.typefree();	
+	V.typefree();	
+	W.typefree();	
+	Omega1.typefree();	
+	Omega2.typefree();	
+	Omega3.typefree();	
 	MPI::Finalize();
+
 }
 

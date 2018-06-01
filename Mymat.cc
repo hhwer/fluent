@@ -96,6 +96,14 @@ Mymat::~Mymat(void)
 	{
 		free(ele);
 		free(temp);
+		factor.clear();
+		xorder.clear();
+		yorder.clear();
+		zorder.clear();
+		in_position.clear();
+		out_position_x.clear();
+		out_position_y.clear();
+		out_position_z.clear();
 		if(status)
 		{
 			typefree();
@@ -138,7 +146,7 @@ void Mymat::rank(int _myid, int _size)
 */
 /* ----------------------------------------------------------------------------*/
 void Mymat::inposition(void)
-{
+{	
 	in_position.resize(size);
 	for(int i=0;i<size;i++)
 	{
@@ -207,23 +215,22 @@ void Mymat::createtype(int n)
 	utensor2_type = byte_type.Create_vector(1, n*n*n, 0);
 	utensor2_type.Commit();
 
-	vcolumn2_type = byte_type.Create_vector(n, 1, n);
+	vcolumn2_type = byte_type.Create_vector(n, 1, n*n);
 	vcolumn2_type.Commit();
 
-	vmatrix2_type = vcolumn2_type.Create_hvector(n, 1, 											n*n*sizeof(fftw_complex));
+	vmatrix2_type = vcolumn2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
 	vmatrix2_type.Commit();
-	
-	vtensor2_type = vmatrix2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	  
+	vtensor2_type = vmatrix2_type.Create_hvector(n, 1, 											n*sizeof(fftw_complex));
 	vtensor2_type.Commit();
-
-
-	wcolumn2_type = byte_type.Create_vector(n, 1, n*n);
+	
+	wcolumn2_type = byte_type.Create_vector(n, 1, n);
 	wcolumn2_type.Commit();
 
-	wmatrix2_type = wcolumn2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	wmatrix2_type = wcolumn2_type.Create_hvector(n, 1, 											n*n*sizeof(fftw_complex));
 	wmatrix2_type.Commit();
-	   
-	wtensor2_type = wmatrix2_type.Create_hvector(n, 1, 											n*sizeof(fftw_complex));
+	
+	wtensor2_type = wmatrix2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
 	wtensor2_type.Commit();
 }
 
@@ -403,8 +410,8 @@ void Mymat::getVW(Mymat &mat1, Mymat &mat2)
 {
 //	std::cout<<myid<<' '<<myorder[0]*size*size+myorder[1]*size+myorder[2]<<' '<<myorder[1]*size*size+myorder[2]*size+myorder[0]<<std::endl;
     MPI::COMM_WORLD.Sendrecv(														ele, 1, vtensor2_type, 														myorder[1]*size*size+myorder[2]*size+myorder[0], 99,						mat1.ele, 1, utensor2_type, 												myorder[2]*size*size+myorder[0]*size+myorder[1], 99);
-
-//	MPI::COMM_WORLD.Sendrecv(														ele, 1, wtensor2_type, myid, 99,mat2.ele, 1, utensor2_type, 				myorder[2]*size*size+myorder[0]*size+myorder[1], 99);
+    
+	MPI::COMM_WORLD.Sendrecv(														ele, 1, wtensor2_type, 														myorder[2]*size*size+myorder[0]*size+myorder[1], 99,						mat2.ele, 1, utensor2_type, 												myorder[1]*size*size+myorder[2]*size+myorder[0], 99);
 }
 
 
@@ -431,7 +438,7 @@ void Mymat::fft(int k)
 		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
 		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
 		
-		p = fftw_plan_dft_1d(size_l, temp, 											temp, FFTW_FORWARD, FFTW_ESTIMATE);
+		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_FORWARD, FFTW_ESTIMATE);
 		fftw_execute(p);
 		for(int j=0;j<size_l;j++)
 		{
@@ -610,6 +617,22 @@ Mymat Mymat::operator-(const Mymat& mat1) const
 	return mat2;
 }
 
+Mymat Mymat::operator+(const Mymat& mat1) const
+{
+	Mymat mat2(size_l,size_m,size_n);
+	double* p  = &ele[0][0];
+	double* p1 = &mat1.ele[0][0];
+	double* p2 = &mat2.ele[0][0];
+	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	{
+		*p2 = *p + *p1;
+		p++;
+		p1++;
+		p2++;
+	}
+	*p2 = *p + *p1;
+	return mat2;
+}
 
 /* --------------------------------------------------------------------------*/
 /**
@@ -637,5 +660,36 @@ Mymat Mymat::operator*(double alpha) const
 	return mat2;
 }
 
+
+/* --------------------------------------------------------------------------*/
+/**
+* @brief 将某个某个数据块写入文件./b.txt
+*
+* @param a  进程
+* @param b	文件名 
+*/
+/* ----------------------------------------------------------------------------*/
+void Mymat::myprint(int a,int b)
+{
+	if(myid==a)
+	{	
+		std::ofstream fp;
+		std::string name = "./" + std::to_string(b) + ".txt";
+		fp.open(name.c_str());
+		for(int k=0;k<size_n;k++)
+		{	
+			for(int j=0;j<size_m;j++)
+			{
+				for(int i=0;i<size_l;i++)
+				{
+					fp << ele[i+j*size_l+k*size_l*size_m][0] << ' ';  
+				}
+				fp << std::endl;
+				
+			}
+		}
+		fp.close();
+	}
+}
 
 
