@@ -29,8 +29,8 @@ class Mymat
 		void createfactor(void);
 		void dividefactor();
 		void multipfactor();
-		void multipfactory();
-		void multipfactorz();
+		void multipfactorx(int k);
+		void getplan();
 		void fft(int k);
 		void ifft(int k);
 		void trdFFT(Mymat &mat1, int i, int j, int k);
@@ -63,11 +63,9 @@ class Mymat
 		Mymat operator+(const Mymat& mat1) const;
 		Mymat operator*(double alpha) const;
 
-		//(u^=2)  =  abs(u)^2*u  
-		Mymat& operator^=(int q);
 
-		fftw_complex* ele;
-		fftw_complex* temp;
+		double* ele;
+		fftw_plan p_dct,p_idct,p_dst,p_idst;
 		
 		std::vector<double> factor;
 	
@@ -91,7 +89,7 @@ class Mymat
 
 	
 	private:
-		int size,myid,status;
+		int size,myid,status,plan_on;
 		int size_l;
 		int size_m;
 		int size_n;

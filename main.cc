@@ -7,7 +7,12 @@ int main(int argc, char** argv)
 
 
 	MPI::Init(argc, argv);
-	int n,Max,myid,totalsize,size;
+	
+	clock_t start,stop,start1,stop1;
+	start = clock();
+	start1 = time(NULL);
+
+	int n,Max,myid,totalsize,size;	
 	myid = MPI::COMM_WORLD.Get_rank();
 	totalsize = MPI::COMM_WORLD.Get_size();
 	double tau=0.01, nu=0.1;
@@ -23,11 +28,10 @@ int main(int argc, char** argv)
 	}
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
-	Max = 10000;
+	Max = 50;
 //	double n3 = pow(N,3);
 
 
-	Mymat mat1(N,n,n/size);
 	Mymat U(n,n,n);
 	Mymat V(n,n,n);
 	Mymat W(n,n,n);
@@ -40,7 +44,6 @@ int main(int argc, char** argv)
 	Omega1.rank(myid,size);
 	Omega2.rank(myid,size);
 	Omega3.rank(myid,size);
-	mat1.rank(myid,size);
 	U.createtype(n);
 	V.createtype(n);
 	W.createtype(n);
@@ -53,9 +56,13 @@ int main(int argc, char** argv)
 	Omega1.outposition();
 	Omega2.outposition();
 	Omega3.outposition();
-	mat1.inposition();
 	U.createfactor();
 	V.createfactor();
+	
+	Mymat mat1(N,n,n/size);
+	mat1.rank(myid,size);
+	mat1.inposition();
+	mat1.getplan();
 
 
 //mat0.getU0(N);
@@ -83,8 +90,8 @@ int main(int argc, char** argv)
 		Omega1.getVW(Omega2,Omega3);
 		U.getVW(V,W);
 		U.Times(V,W,Omega1,Omega2,Omega3);
-		//W =nabla \times U
-		U.NablaTimes(U,V,mat1,1,1);
+		//W =nabla \times (Omega\time U)
+		U.NablaTimes(U,V,mat1,-1,-1);
 	
 		//V 存储 laplace omega
 		V = Omega1;
@@ -110,29 +117,34 @@ int main(int argc, char** argv)
 //		if(myid==0)
 //		{
 //			std::cout << "relative err= " << total[0]/(total[1]) << " ,err="					<< total[0]	<< " inf_U= "<< total[1] << std::endl;
-//		}
+//		}/
 //		
 //		if(total[0]/total[1]<1e-24 || total[0]==0) 
 //		{
-//			stop = clock();
-//			stop1 = time(NULL);
-//			if(myid==0)
-//			{
-//				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
-//				std::cout << "time:" << 														(stop1-start1)<< std::endl;
-//				std::cout << "ite:" << j+1 << std::endl;
-//			}
+			stop = clock();
+			stop1 = time(NULL);
+			if(myid==0)
+			{
+				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
+				std::cout << "time:" << 														(stop1-start1)<< std::endl;
+			}
 //			break;
 //		}
 //  	
 //	}
-	U.typefree();	
-	V.typefree();	
-	W.typefree();	
-	Omega1.typefree();	
-	Omega2.typefree();	
-	Omega3.typefree();	
-	MPI::Finalize();
+	U.typefree();
+	V.typefree();
+	W.typefree();
+	Omega1.typefree();
+	Omega2.typefree();
+	Omega3.typefree();
+//	U.~Mymat();
+//	V.~Mymat();
+//	W.~Mymat();
+//	Omega1.~Mymat();
+//	Omega2.~Mymat();
+//	Omega3.~Mymat();
+//	MPI::Finalize();
 
 }
 

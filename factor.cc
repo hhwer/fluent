@@ -11,7 +11,8 @@
 
 /* --------------------------------------------------------------------------*/
 /**
-* @brief 生成每个数据块中的laplace对应的傅里叶系数-i^2-j^2-k^2
+* @brief 生成每个数据块中的laplace对应的傅里叶系数-i^2-(j+1)^2-(k+1)^2
+*	仅对应x对称,yz反对称的情形
 */
 /* ----------------------------------------------------------------------------*/
 void Mymat::createfactor(void)
@@ -58,95 +59,69 @@ void Mymat::createfactor(void)
 /* ----------------------------------------------------------------------------*/
 void Mymat::dividefactor(void)
 {
-	if (factor[0]==0)
+	double* p = &ele[0];
+	double* f = &factor[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
-		ele[0][0] = 0.0;
-		ele[0][1] = 0.0;
-	}
-	else
-	{
-		ele[0][0] /= factor[0];
-		ele[0][1] /= factor[0];
-	}
-	double* p = &ele[1][0];
-	double* f = &factor[1];
-	for(int i=1;i<size_l*size_m*size_n-1;i++)
-	{
-		*p /= *f;
-		p++;
 		*p /= *f;
 		p++;
 		f++;
 	}
-	*p /= *f;
-	p++;
 	*p /= *f;
 }
 
 
 void Mymat::multipfactor(void)
 {
-	double* p = &ele[0][0];
+	double* p = &ele[0];
 	double* f = &factor[0];
 	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p *= *f;
 		p++;
-		*p *= *f;
-		p++;
 		f++;
 	}
 	*p *= *f;
-	p++;
-	*p *= *f;
 }
+
 
 /* --------------------------------------------------------------------------*/
 /**
-* @brief 从u的傅里叶系数变成partial_y u的系数
+* @brief 从u的傅里叶系数变成partial_x u的系数 并完成位移 
+*以及归一化操作 /N
 */
 /* ----------------------------------------------------------------------------*/
-void Mymat::multipfactory(void)
+void Mymat::multipfactorx(int k)
 {	
-	int num = 0;
-	double a;
-	for(int k=0;k<size_n;k++)
+	int num = -1;
+	double alpha = 2*size_l;
+	if(k==1)
 	{
-		for(int j=0;j<size_m;j++)
-		{
-			int alpha = myorder[1]*size_m+j;
-			for(int i=0;i<size_l;i++)
-			{	
-				a = alpha*ele[num][0];
-				ele[num][0] = -alpha*ele[num][1];
-				ele[num][1] = a;
-				num += 1;
+    	for(int j=0;j<size_m*size_n;j++)
+	    {	
+			num++;
+	    	for(int i=1;i<size_l-1;i++)
+	    	{	
+				//ele[num] = -i*ele[num++];
+	    		
+				ele[num] = -i/alpha*ele[num+1];
+				num++;
 			}
+			ele[num] = 0;
 		}
 	}
-}
-
-/* --------------------------------------------------------------------------*/
-/**
-* @brief 从u的傅里叶系数变成partial_z u的系数
-*/
-/* ----------------------------------------------------------------------------*/
-void Mymat::multipfactorz(void)
-{	
-	int num = 0;
-	double a;
-	for(int k=0;k<size_n;k++)
-	{
-		int alpha = myorder[0]*size_n+k;
-		for(int j=0;j<size_m;j++)
-		{
-			for(int i=0;i<size_l;i++)
-			{	
-				a = alpha*ele[num][0];
-				ele[num][0] = -alpha*ele[num][1];
-				ele[num][1] = a;
-				num += 1;
+	else
+	{	
+		num = size_m*size_n*size_l;
+    	for(int j=0;j<size_m*size_n;j++)
+	    {
+			num--;
+	    	for(int i=size_l-1;i>0;i--)
+	    	{	
+	    		ele[num] = i/alpha*ele[num-1];
+				num--;
 			}
+			ele[num] = 0;
 		}
 	}
 }

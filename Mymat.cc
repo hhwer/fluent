@@ -16,6 +16,7 @@ Mymat::Mymat(void)
 	size_m = 0;
 	size_n = 0;
 	status = 0;
+	plan_on = 0;
 }
 
 Mymat::Mymat(int l, int m, int n )
@@ -24,17 +25,10 @@ Mymat::Mymat(int l, int m, int n )
 	size_m = m;
 	size_n = n;
 	status = 0;
-	ele = (fftw_complex*) malloc( sizeof(fftw_complex)*l*m*n );
-	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(l*2-2));
-	double* p=&ele[0][0];
-	for(int i=0;i<2*l*m*n-1;i++)
-	{
-		*p = 0.0;
-		p++;
-	}
-	*p = 0.0;
-	p = &temp[0][0];
-	for(int i=0;i<2*(l*2-2)-1;i++)
+	plan_on = 0;
+	ele = (double*) fftw_malloc( sizeof(double)*l*m*n );
+	double* p=&ele[0];
+	for(int i=0;i<l*m*n-1;i++)
 	{
 		*p = 0.0;
 		p++;
@@ -49,23 +43,16 @@ Mymat::Mymat(int l, int m, int n,int num)
 	size_m = m;
 	size_n = n;
 	status = 0;
+	plan_on = 0;
 	double num0 = (double)num; 
-	ele = (fftw_complex*) malloc( sizeof(fftw_complex)*l*m*n );
-	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(l*2-2));
-	double* p=&ele[0][0];
-	for(int i=0;i<2*l*m*n-1;i++)
+	ele = (double*) malloc( sizeof(double)*l*m*n );
+	double* p=&ele[0];
+	for(int i=0;i<l*m*n-1;i++)
 	{
 		*p = num0;
 		p++;
 	}
 	*p = num0;
-	p = &temp[0][0];
-	for(int i=0;i<2*(l*2-2)-1;i++)
-	{
-		*p = 0.0;
-		p++;
-	}
-	*p = 0.0;
 }
 
 
@@ -75,17 +62,10 @@ Mymat::Mymat(Mymat& mat1)
 	size_m = mat1.size_m;
 	size_n = mat1.size_n;
 	status = 0;
-	ele = (fftw_complex*) malloc( sizeof(fftw_complex)*size_l*size_m*size_n );
-	double* p=&ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
-	{
-		*p = 0.0;
-		p++;
-	}
-	*p = 0.0;
-	temp = (fftw_complex*) malloc( sizeof(fftw_complex)*(size_l*2-2));
-	p = &temp[0][0];
-	for(int i=0;i<2*(size_l*2-2)-1;i++)
+	plan_on = 0;
+	ele = (double*) malloc( sizeof(double)*size_l*size_m*size_n );
+	double* p=&ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p = 0.0;
 		p++;
@@ -95,7 +75,6 @@ Mymat::Mymat(Mymat& mat1)
 Mymat::~Mymat(void)
 	{
 		fftw_free(ele);
-		fftw_free(temp);
 		std::vector<double>().swap(factor);
 		std::vector<int>().swap(xorder);
 		std::vector<int>().swap(yorder);
@@ -107,6 +86,13 @@ Mymat::~Mymat(void)
 		if(status)
 		{
 			typefree();
+		}
+		if(plan_on)
+		{
+			fftw_destroy_plan(p_dct);
+			fftw_destroy_plan(p_idct);
+			fftw_destroy_plan(p_dst);
+			fftw_destroy_plan(p_idst);
 		}
 	}
 
@@ -183,7 +169,7 @@ void Mymat::outposition(void)
 void Mymat::createtype(int n)
 {
 	status = 1;
-	byte_type = MPI::DOUBLE.Create_vector(1, 2, 2);
+	byte_type = MPI::DOUBLE.Create_vector(1, 1, 1);
 	byte_type.Commit();
 
 	tensor1_type = byte_type.Create_vector(n*n/size, n, n*size);
@@ -270,14 +256,14 @@ double* Mymat::inbuff_x(int i)
 {
 	int j =i;
 	j = (j+myorder[2])%size;
-	return &(ele[in_position[j]][0]);
+	return &(ele[in_position[j]]);
 }
 
 double* Mymat::inbuff_y(int i)
 {
 	int j =i;
 	j = (j+myorder[1])%size;
-	return &(ele[in_position[j]][0]);
+	return &(ele[in_position[j]]);
 }
 
 
@@ -285,7 +271,7 @@ double* Mymat::inbuff_z(int i)
 {
 	int j =i;
 	j = (j+myorder[0])%size;
-	return &(ele[in_position[j]][0]);
+	return &(ele[in_position[j]]);
 }
 
 
@@ -302,7 +288,7 @@ double* Mymat::outbuff_x(int i)
 {
 	int j =i;
 	j = (j+myorder[2])%size;
-	return &(ele[out_position_x[j]][0]);
+	return &(ele[out_position_x[j]]);
 }
 
 
@@ -310,7 +296,7 @@ double* Mymat::outbuff_y(int i)
 {
 	int j =i;
 	j = (j+myorder[1])%size;
-	return &(ele[out_position_y[j]][0]);
+	return &(ele[out_position_y[j]]);
 }
 
 
@@ -318,7 +304,7 @@ double* Mymat::outbuff_z(int i)
 {
 	int j =i;
 	j = (j+myorder[0])%size;
-	return &(ele[out_position_z[j]][0]);
+	return &(ele[out_position_z[j]]);
 }
 
 
@@ -415,6 +401,15 @@ void Mymat::getVW(Mymat &mat1, Mymat &mat2)
 }
 
 
+void Mymat::getplan()
+{
+	plan_on = 1;
+	p_dct = fftw_plan_r2r_1d(size_l, ele, 											ele, FFTW_REDFT10, FFTW_MEASURE);
+	p_idct = fftw_plan_r2r_1d(size_l, ele, 											ele, FFTW_REDFT01, FFTW_MEASURE);
+	p_dst = fftw_plan_r2r_1d(size_l, ele, 											ele, FFTW_RODFT10, FFTW_MEASURE);
+	p_idst = fftw_plan_r2r_1d(size_l, ele, 											ele, FFTW_RODFT01, FFTW_MEASURE);
+}
+
 /* --------------------------------------------------------------------------*/
 /**
 * @brief 沿x方向对每个向量做fft
@@ -423,30 +418,21 @@ void Mymat::getVW(Mymat &mat1, Mymat &mat2)
 /* ----------------------------------------------------------------------------*/
 void Mymat::fft(int k)
 {
-	for(int i=0;i<size_m*size_n;i++)
+	if(k==1)
 	{
-		temp[0][0] = ele[i*size_l][0];
-		temp[0][1] = ele[i*size_l][1];
-		for(int j =1;j<size_l-1;j++)
+		for(int i=0;i<size_m*size_n;i++)
 		{
-			temp[j][0] = ele[i*size_l+j][0];
-			temp[j][1] = ele[i*size_l+j][1];
-			temp[2*size_l-2-j][0] = k * temp[j][0];
-			temp[2*size_l-2-j][1] = k * temp[j][1];
-		}
-		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
-		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
-		
-		fftw_plan p;
-		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_FORWARD, FFTW_ESTIMATE);
-		fftw_execute(p);
-		fftw_destroy_plan(p);
-		for(int j=0;j<size_l;j++)
-		{
-			ele[i*size_l+j][0] = temp[j][0];
-			ele[i*size_l+j][1] = temp[j][1];
+			fftw_execute_r2r(p_dct,&ele[i*size_l],&ele[i*size_l]);
 		}
 	}
+	else
+	{
+		for(int i=0;i<size_m*size_n;i++)
+		{
+			fftw_execute_r2r(p_dst,&ele[i*size_l],&ele[i*size_l]);
+		}
+	}
+	
 }
 
 
@@ -458,31 +444,21 @@ void Mymat::fft(int k)
 /* ----------------------------------------------------------------------------*/
 void Mymat::ifft(int k)
 {
-	for(int i=0;i<size_m*size_n;i++)
+	if(k==1)
 	{	
-		temp[0][0] = ele[i*size_l][0];
-		temp[0][1] = ele[i*size_l][1];
-		for(int j =1;j<size_l-1;j++)
+		for(int i=0;i<size_m*size_n;i++)
 		{
-			temp[j][0] = ele[i*size_l+j][0];
-			temp[j][1] = ele[i*size_l+j][1];
-			temp[2*size_l-2-j][0] = k * temp[j][0];
-			temp[2*size_l-2-j][1] = k * temp[j][1];
-		}
-		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
-		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
-		
-		fftw_plan p;
-		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_BACKWARD, FFTW_ESTIMATE);
-		fftw_execute(p);
-		fftw_destroy_plan(p);
-	
-		for(int j=0;j<size_l;j++)
-		{
-			ele[i*size_l+j][0] = temp[j][0];
-			ele[i*size_l+j][1] = temp[j][1];
+			fftw_execute_r2r(p_idct,&ele[i*size_l],&ele[i*size_l]);
 		}
 	}
+	else
+	{
+		for(int i=0;i<size_m*size_n;i++)
+		{
+			fftw_execute_r2r(p_idst,&ele[i*size_l],&ele[i*size_l]);
+		}
+	}
+	
 }
 
 
@@ -498,19 +474,15 @@ double Mymat::norm_inf(void)
 {
 	double num = 0;
 	double num1;
-	double* p = &ele[0][0];
+	double* p = &ele[0];
 	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		num1 = *p*(*p);
 		p++;
-		num1 += *p*(*p);
-		p++;
 		num = std::max(num, num1);
-//		num = std::max(num, ele[i][0]*ele[i][0]+ele[i][1]*ele[i][1]);
+//		num = std::max(num, ele[i]*ele[i]);
 	}
 	num1 = *p*(*p);
-	p++;
-	num1 += *p*(*p);
 	num = std::max(num, num1);
 	return num;
 }
@@ -519,9 +491,9 @@ double Mymat::norm_inf(void)
 
 Mymat& Mymat::operator+=(const Mymat& mat1)
 {
-	double* p  = &ele[0][0];
-	double* p1 = &mat1.ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p  = &ele[0];
+	double* p1 = &mat1.ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p += *p1;
 		p++;
@@ -535,8 +507,8 @@ Mymat& Mymat::operator+=(const Mymat& mat1)
 
 Mymat& Mymat::operator/=(double alpha)
 {
-	double* p = &ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p = &ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p /= alpha;
 		p++;
@@ -549,9 +521,9 @@ Mymat& Mymat::operator/=(double alpha)
 
 Mymat& Mymat::operator=(const Mymat& mat1)
 {
-	double* p  = &ele[0][0];
-	double* p1 = &mat1.ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p  = &ele[0];
+	double* p1 = &mat1.ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p = *p1;
 		p++;
@@ -563,48 +535,14 @@ Mymat& Mymat::operator=(const Mymat& mat1)
 	return *this;
 }
 
-/* --------------------------------------------------------------------------*/
-/**
-* @brief 每个元素都自乘上其模的p次方
-*
-* @param p 
-*
-* @returns   
-*/
-/* ----------------------------------------------------------------------------*/
-Mymat& Mymat::operator^=(int q)
-{
-	double val;
-	double* p = &ele[0][0];
-	for(int i=0;i<size_l*size_m*size_n-1;i++)
-	{
-		val = *(p+1);
-		val = val*val;
-		val += *p*(*p);
-		*p *= val;
-		p++;
-		*p *= val;
-		p++;
-//		val = ele[i][0]*ele[i][0] + ele[i][1]*ele[i][1];
-//		ele[i][0] *= val;
-//		ele[i][1] *= val;
-	}
-	val = *(p+1);
-	val = val*val;
-	val += *p*(*p);
-	*p *= val;
-	p++;
-	*p *= val;
-	return *this;
-}
 
 Mymat Mymat::operator-(const Mymat& mat1) const
 {
 	Mymat mat2(size_l,size_m,size_n);
-	double* p  = &ele[0][0];
-	double* p1 = &mat1.ele[0][0];
-	double* p2 = &mat2.ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p  = &ele[0];
+	double* p1 = &mat1.ele[0];
+	double* p2 = &mat2.ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p2 = *p - *p1;
 		p++;
@@ -620,10 +558,10 @@ Mymat Mymat::operator-(const Mymat& mat1) const
 Mymat Mymat::operator+(const Mymat& mat1) const
 {
 	Mymat mat2(size_l,size_m,size_n);
-	double* p  = &ele[0][0];
-	double* p1 = &mat1.ele[0][0];
-	double* p2 = &mat2.ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p  = &ele[0];
+	double* p1 = &mat1.ele[0];
+	double* p2 = &mat2.ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p2 = *p + *p1;
 		p++;
@@ -646,9 +584,9 @@ Mymat Mymat::operator+(const Mymat& mat1) const
 Mymat Mymat::operator*(double alpha) const
 {	
 	Mymat mat2(size_l,size_m,size_n);
-	double* p  = &ele[0][0];
-	double* p2 = &mat2.ele[0][0];
-	for(int i=0;i<2*size_l*size_m*size_n-1;i++)
+	double* p  = &ele[0];
+	double* p2 = &mat2.ele[0];
+	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
 		*p2 = alpha * (*p);
 		p2++;
@@ -682,7 +620,7 @@ void Mymat::myprint(int a,int b)
 			{
 				for(int i=0;i<size_l;i++)
 				{
-					fp << ele[i+j*size_l+k*size_l*size_m][0] << ' ';  
+					fp << ele[i+j*size_l+k*size_l*size_m] << ' ';  
 				}
 				fp << std::endl;
 				
