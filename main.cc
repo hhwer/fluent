@@ -4,7 +4,12 @@
 
 int main(int argc, char** argv)
 {
+
+
+	MPI::Init(argc, argv);
 	int n,Max,myid,totalsize,size;
+	myid = MPI::COMM_WORLD.Get_rank();
+	totalsize = MPI::COMM_WORLD.Get_size();
 	double tau=0.01, nu=0.1;
 	int N=pow(2,2);
 	if(argc>1)
@@ -16,14 +21,9 @@ int main(int argc, char** argv)
 	while(aaa==1);
 	{
 	}
-
-
-	MPI::Init(argc, argv);
-	myid = MPI::COMM_WORLD.Get_rank();
-	totalsize = MPI::COMM_WORLD.Get_size();
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
-	Max = 1000;
+	Max = 10000;
 //	double n3 = pow(N,3);
 
 

@@ -15,7 +15,7 @@ factor.o: factor.cc
 clean:
 	rm *.o test
 gdb: main.cc Mymat.cc FMymat.cc factor.cc Mymat.h
-	mpic++ -o test main.cc FMymat.cc Mymat.cc factor.cc Mymat.h -lfftw3 -g -Wall -std=c++14
+	mpic++ -g -o test main.cc FMymat.cc Mymat.cc factor.cc Mymat.h -lfftw3 -g -Wall -std=c++14
 run: 
 	mpirun -np 8 ./test 
 

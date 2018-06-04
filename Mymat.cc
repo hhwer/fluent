@@ -94,16 +94,16 @@ Mymat::Mymat(Mymat& mat1)
 }
 Mymat::~Mymat(void)
 	{
-		free(ele);
-		free(temp);
-		factor.clear();
-		xorder.clear();
-		yorder.clear();
-		zorder.clear();
-		in_position.clear();
-		out_position_x.clear();
-		out_position_y.clear();
-		out_position_z.clear();
+		fftw_free(ele);
+		fftw_free(temp);
+		std::vector<double>().swap(factor);
+		std::vector<int>().swap(xorder);
+		std::vector<int>().swap(yorder);
+		std::vector<int>().swap(zorder);
+		std::vector<int>().swap(in_position);
+		std::vector<int>().swap(out_position_x);
+		std::vector<int>().swap(out_position_y);
+		std::vector<int>().swap(out_position_z);
 		if(status)
 		{
 			typefree();
@@ -423,7 +423,6 @@ void Mymat::getVW(Mymat &mat1, Mymat &mat2)
 /* ----------------------------------------------------------------------------*/
 void Mymat::fft(int k)
 {
-	fftw_plan p;
 	for(int i=0;i<size_m*size_n;i++)
 	{
 		temp[0][0] = ele[i*size_l][0];
@@ -438,15 +437,16 @@ void Mymat::fft(int k)
 		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
 		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
 		
+		fftw_plan p;
 		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_FORWARD, FFTW_ESTIMATE);
 		fftw_execute(p);
+		fftw_destroy_plan(p);
 		for(int j=0;j<size_l;j++)
 		{
 			ele[i*size_l+j][0] = temp[j][0];
 			ele[i*size_l+j][1] = temp[j][1];
 		}
 	}
-	fftw_free(p);
 }
 
 
@@ -458,7 +458,6 @@ void Mymat::fft(int k)
 /* ----------------------------------------------------------------------------*/
 void Mymat::ifft(int k)
 {
-	fftw_plan p;
 	for(int i=0;i<size_m*size_n;i++)
 	{	
 		temp[0][0] = ele[i*size_l][0];
@@ -473,8 +472,10 @@ void Mymat::ifft(int k)
 		temp[size_l-1][0] = ele[i*size_l+size_l-1][0];
 		temp[size_l-1][1] = ele[i*size_l+size_l-1][1];
 		
+		fftw_plan p;
 		p = fftw_plan_dft_1d(2*size_l-2, temp, 											temp, FFTW_BACKWARD, FFTW_ESTIMATE);
 		fftw_execute(p);
+		fftw_destroy_plan(p);
 	
 		for(int j=0;j<size_l;j++)
 		{
@@ -482,7 +483,6 @@ void Mymat::ifft(int k)
 			ele[i*size_l+j][1] = temp[j][1];
 		}
 	}
-	fftw_free(p);
 }
 
 
