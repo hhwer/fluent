@@ -35,7 +35,7 @@ void Mymat::createfactor(void)
 		{
 			for(int i=0;i<size_l;i++)
 			{
-				factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j),2);
+				factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[1]*size_m+j+1),2);
 			}
 		}
 	}
@@ -46,7 +46,7 @@ void Mymat::createfactor(void)
 		{
 			for(int i=0;i<size_l;i++)
 			{
-				factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k),2);
+				factor[i+j*size_l+k*size_l*size_m] -= 											pow((myorder[0]*size_n+k+1),2);
 			}
 		}
 	}
@@ -100,7 +100,7 @@ void Mymat::multipfactorx(int k)
     	for(int j=0;j<size_m*size_n;j++)
 	    {	
 			num++;
-	    	for(int i=1;i<size_l-1;i++)
+	    	for(int i=1;i<size_l;i++)
 	    	{	
 				//ele[num] = -i*ele[num++];
 	    		

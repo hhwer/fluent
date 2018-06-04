@@ -182,7 +182,7 @@ void Mymat::createtype(int n)
 	ycolumn0_type = byte_type.Create_vector(n, 1, n);
 	ycolumn0_type.Commit();
 
-	ymatrix0_type = ycolumn0_type.Create_hvector(n, 1, sizeof(fftw_complex));
+	ymatrix0_type = ycolumn0_type.Create_hvector(n, 1, sizeof(double));
 	ymatrix0_type.Commit();
 
 	ytensor0_type = ymatrix0_type.Create_vector(n/size, 1, 1);
@@ -192,10 +192,10 @@ void Mymat::createtype(int n)
 	zcolumn0_type = byte_type.Create_vector(n, 1, n*n);
 	zcolumn0_type.Commit();
 
-	zmatrix0_type = zcolumn0_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	zmatrix0_type = zcolumn0_type.Create_hvector(n, 1, 											sizeof(double));
 	zmatrix0_type.Commit();
 
-	ztensor0_type = zmatrix0_type.Create_hvector(n/size, 1, 										n*sizeof(fftw_complex));
+	ztensor0_type = zmatrix0_type.Create_hvector(n/size, 1, 										n*sizeof(double));
 	ztensor0_type.Commit();
 
 	utensor2_type = byte_type.Create_vector(1, n*n*n, 0);
@@ -204,19 +204,19 @@ void Mymat::createtype(int n)
 	vcolumn2_type = byte_type.Create_vector(n, 1, n*n);
 	vcolumn2_type.Commit();
 
-	vmatrix2_type = vcolumn2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	vmatrix2_type = vcolumn2_type.Create_hvector(n, 1, 											sizeof(double));
 	vmatrix2_type.Commit();
 	  
-	vtensor2_type = vmatrix2_type.Create_hvector(n, 1, 											n*sizeof(fftw_complex));
+	vtensor2_type = vmatrix2_type.Create_hvector(n, 1, 											n*sizeof(double));
 	vtensor2_type.Commit();
 	
 	wcolumn2_type = byte_type.Create_vector(n, 1, n);
 	wcolumn2_type.Commit();
 
-	wmatrix2_type = wcolumn2_type.Create_hvector(n, 1, 											n*n*sizeof(fftw_complex));
+	wmatrix2_type = wcolumn2_type.Create_hvector(n, 1, 											n*n*sizeof(double));
 	wmatrix2_type.Commit();
 	
-	wtensor2_type = wmatrix2_type.Create_hvector(n, 1, 											sizeof(fftw_complex));
+	wtensor2_type = wmatrix2_type.Create_hvector(n, 1, 											sizeof(double));
 	wtensor2_type.Commit();
 }
 

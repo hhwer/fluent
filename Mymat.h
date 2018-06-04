@@ -41,6 +41,7 @@ class Mymat
 		void Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3);	
 		void getF(int N);
 		void getF1(int N);
+		void getF2(int N);
 		void getU0(int N);
 		void getvalue();
 

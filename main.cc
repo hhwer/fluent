@@ -15,20 +15,20 @@ int main(int argc, char** argv)
 	int n,Max,myid,totalsize,size;	
 	myid = MPI::COMM_WORLD.Get_rank();
 	totalsize = MPI::COMM_WORLD.Get_size();
-	double tau=0.01, nu=0.1;
+	double tau=1, nu=1;
 	int N=pow(2,2);
 	if(argc>1)
 	{
 		N = atoi(argv[1]);
 	}
 
-	int aaa =0;
+	int aaa =1;
 	while(aaa==1);
 	{
 	}
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
-	Max = 50;
+	Max = 1;
 //	double n3 = pow(N,3);
 
 
@@ -73,36 +73,57 @@ int main(int argc, char** argv)
 //	W.myprint(1,3);
 
 
+	Omega1.getF1(N);
+	Omega1.myprint(0,0);
 
-	for(int j=0;j<Max;j++)
-	{	
-		// -laplace psi = omega  (psi 存储在U中)
-		U = Omega1;
-		U.InverseLaplace(mat1,1,-1,-1);
-		U = U*(-1);
-	
-		//W = nabla \times psi
-		U.getVW(V,W);
-		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-		U = W;
-	
-		//u = omega \times u
-		Omega1.getVW(Omega2,Omega3);
-		U.getVW(V,W);
-		U.Times(V,W,Omega1,Omega2,Omega3);
-		//W =nabla \times (Omega\time U)
-		U.NablaTimes(U,V,mat1,-1,-1);
-	
-		//V 存储 laplace omega
-		V = Omega1;
-		V.Laplace(mat1,1,-1,-1);
-		
-		V = V*nu - U;
-		
-		Omega1 = Omega1 + V*tau;
-		if(myid==0)
-		std::cout<<j<<std::endl;
-	}
+	W=Omega1;
+	W.trans_x(mat1);
+	mat1.fft(1);
+	mat1.multipfactorx(1);
+	mat1.ifft(-1);
+	W.retrans_x(mat1);
+	W.myprint(0,1);
+	V.getF2(N);
+	V.myprint(0,2);
+
+//	Omega2 = Omega1*(1-nu*tau);
+//	Omega2.myprint(0,3);
+
+//	for(int j=0;j<Max;j++)
+//	{	
+//		// -laplace psi = omega  (psi 存储在U中)
+//		U = Omega1;
+//		U.InverseLaplace(mat1,1,-1,-1);
+//		U = U*(-1);
+//		
+//
+//		//检查U-Omega1
+//		V = Omega1-U;
+//		V.myprint(0,1);
+//	
+//		//W = nabla \times psi
+//		U.getVW(V,W);
+//		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+//
+//		
+//		U = W;
+//	
+//		//u = omega \times u
+//		U.Times(V,W,Omega1,Omega2,Omega3);
+//		//W =nabla \times (Omega\time U)
+//		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+//	
+//		//V 存储 laplace omega
+//		V = Omega1;
+//		V.Laplace(mat1,1,-1,-1);
+//		
+//		V = V*nu - W;
+//		
+//		Omega1 = Omega1 + V*tau;
+//		if(myid==0)
+//		std::cout<<j<<std::endl;
+//	}
+//	Omega1.myprint(0,1);
 //		
 //
 //		
