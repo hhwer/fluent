@@ -22,13 +22,13 @@ int main(int argc, char** argv)
 		N = atoi(argv[1]);
 	}
 
-	int aaa =1;
-	while(aaa==1);
+	int aaa =10;
+	while(aaa==1)
 	{
 	}
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
-	Max = 1;
+	Max = 10;
 //	double n3 = pow(N,3);
 
 
@@ -64,66 +64,46 @@ int main(int argc, char** argv)
 	mat1.inposition();
 	mat1.getplan();
 
+	
 
-//mat0.getU0(N);
-//	mat0.getvalue();
-//	mat0.getVW(V,W);	
-//	mat0.myprint(1,1);
-//	V.myprint(1,2);
-//	W.myprint(1,3);
-
-
-	Omega1.getF1(N);
-	Omega1.myprint(0,0);
-
-	W=Omega1;
-	W.trans_x(mat1);
-	mat1.fft(1);
-	mat1.multipfactorx(1);
-	mat1.ifft(-1);
-	W.retrans_x(mat1);
-	W.myprint(0,1);
-	V.getF2(N);
-	V.myprint(0,2);
-
-//	Omega2 = Omega1*(1-nu*tau);
-//	Omega2.myprint(0,3);
+	Omega1.getF(N);
+	Omega2 = Omega1*(1-3*nu*tau);
+	Omega2.myprint(0,2);
 
 //	for(int j=0;j<Max;j++)
 //	{	
 //		// -laplace psi = omega  (psi 存储在U中)
-//		U = Omega1;
-//		U.InverseLaplace(mat1,1,-1,-1);
-//		U = U*(-1);
-//		
-//
-//		//检查U-Omega1
-//		V = Omega1-U;
-//		V.myprint(0,1);
-//	
-//		//W = nabla \times psi
-//		U.getVW(V,W);
-//		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-//
-//		
-//		U = W;
-//	
-//		//u = omega \times u
-//		U.Times(V,W,Omega1,Omega2,Omega3);
-//		//W =nabla \times (Omega\time U)
-//		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-//	
-//		//V 存储 laplace omega
-//		V = Omega1;
-//		V.Laplace(mat1,1,-1,-1);
-//		
-//		V = V*nu - W;
-//		
-//		Omega1 = Omega1 + V*tau;
+		U = Omega1;
+		U.InverseLaplace(mat1,1,-1,-1);
+		U = U*(-1);
+		
+
+		//检查U-Omega1
+		V = Omega1-U;
+		V.myprint(0,1);
+	
+		//u(W) = nabla \times psi
+		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+
+		
+		U = W;
+	
+		//u = omega \times u
+		U.Times(V,W,Omega1,Omega2,Omega3);
+		//W =nabla \times (Omega\time U)
+		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+	
+		//V 存储 laplace omega
+		V = Omega1;
+		V.Laplace(mat1,1,-1,-1);
+		
+		V = V*nu - W;
+		
+		Omega1 = Omega1 + V*tau;
 //		if(myid==0)
 //		std::cout<<j<<std::endl;
 //	}
-//	Omega1.myprint(0,1);
+	Omega1.myprint(0,1);
 //		
 //
 //		
@@ -144,11 +124,11 @@ int main(int argc, char** argv)
 //		{
 			stop = clock();
 			stop1 = time(NULL);
-			if(myid==0)
-			{
+	//		if(myid==0)
+	//		{
 				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
 				std::cout << "time:" << 														(stop1-start1)<< std::endl;
-			}
+	//		}
 //			break;
 //		}
 //  	
@@ -165,7 +145,9 @@ int main(int argc, char** argv)
 //	Omega1.~Mymat();
 //	Omega2.~Mymat();
 //	Omega3.~Mymat();
-//	MPI::Finalize();
+
+
+	MPI::Finalize();
 
 }
 

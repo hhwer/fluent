@@ -10,6 +10,7 @@
 #include <math.h>
 #include <fstream>
 #include <string.h>
+#include <unistd.h>
 
 class Mymat
 {
@@ -42,6 +43,8 @@ class Mymat
 		void getF(int N);
 		void getF1(int N);
 		void getF2(int N);
+		void getF3(int N);
+		void getF4(int N);
 		void getU0(int N);
 		void getvalue();
 

@@ -19,12 +19,14 @@ value.o: value.cc
 
 clean:
 	rm *.o *.out *.txt
+clean1:
+	rm  *.txt
 gdb: main.cc Mymat.cc FMymat.cc factor.cc value.cc Mymat.h
 	mpic++ -g -o test.out main.cc FMymat.cc Mymat.cc factor.cc value.cc Mymat.h -lfftw3  -Wall -std=c++14
 run: 
 	mpirun -np 8 ./test.out 
 
 t: htest1.out
-	mpirun -np 1 ./htest1.out 4
+	mpirun -np 8 ./htest1.out 4
 htest1.out: test1.cc Mymat.cc FMymat.cc factor.cc value.cc Mymat.h
 	mpic++ -g -o htest1.out test1.cc  FMymat.cc Mymat.cc factor.cc value.cc Mymat.h -lfftw3  -Wall -std=c++14

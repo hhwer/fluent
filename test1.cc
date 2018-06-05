@@ -18,56 +18,119 @@ int main(int argc, char** argv)
 		N = atoi(argv[1]);
 	}
 
-	int aaa =10;
-	while(aaa==1);
+	int aaa =1;
+	if(myid==0)
 	{
+		aaa=0;
 	}
+	std::cout<<myid<<aaa<<std::endl;
+//	while(aaa==0)
+//	{
+//	}
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
 	Max = 1;
-//	double n3 = pow(N,3);
 
 
 	Mymat U(n,n,n);
 	Mymat V(n,n,n);
 	Mymat W(n,n,n);
-	Mymat Omega1(n,n,n,0);
 	U.rank(myid,size);
 	V.rank(myid,size);
 	W.rank(myid,size);
-	Omega1.rank(myid,size);
 	U.createtype(n);
 	V.createtype(n);
 	W.createtype(n);
-	Omega1.createtype(n);
 	U.outposition();
 	V.outposition();
 	W.outposition();
-	Omega1.outposition();
 	U.createfactor();
 	V.createfactor();
+	Mymat Omega1(n,n,n,0);
+	Omega1.rank(myid,size);
+	Omega1.createtype(n);
+	Omega1.outposition();
+	Mymat Omega2(n,n,n,0);
+	Omega2.rank(myid,size);
+	Omega2.createtype(n);
+	Omega2.outposition();
+	Mymat Omega3(n,n,n,0);
+	Omega3.rank(myid,size);
+	Omega3.createtype(n);
+	Omega3.outposition();
 	
 	Mymat mat1(N,n,n/size);
 	mat1.rank(myid,size);
 	mat1.inposition();
 	mat1.getplan();
-	Omega1.getF1(N);
-	Omega1.myprint(0,0);
 
-	W=Omega1;
-	W.trans_x(mat1);
-	mat1.fft(1);
-	mat1.multipfactorx(1);
-	mat1.ifft(-1);
-	W.retrans_x(mat1);
-	W.myprint(0,1);
-	V.getF2(N);
+//// Nabla \times u
+//	U.getF(N);
+//	U.NablaTimes(V,W,mat1,-1,-1);
+//	W.myprint(0,1);
+
+
+//// omega times u
+//	Omega1.getF(N);
+//	U.getF1(N);
+//	U.Times(V,W,Omega1,Omega2,Omega3);
+//	V.getF3(N);
+//	U.myprint(0,1);
+//	V.myprint(0,2);
+
+
+////f= cosx*siny*sinz  laplace(f)=-3f
+//	U.getF(N);
+//	V = U*(-3);
+//	U.Laplace(mat1,1,-1,-1);
+//	U.myprint(0,1);
+//	V.myprint(0,2);
+
+////f= cosx*siny*sinz  inverselaplace(f)=-f/3
+	U.getF(N);
+	V = U*(-1.0/3);
 	V.myprint(0,2);
+	U.InverseLaplace(mat1,1,-1,-1);
+	U.myprint(0,1);
+
+
+////i=1,-1  u=cosx,sinx 求导
+//	int i =2;  
+//	if(i==1)
+//	{
+//		Omega1.getF2(N);
+//		V.getF1(N);
+//	}
+//	else
+//	{
+//		Omega1.getF1(N);
+//		V.getF2(N);
+//	}
+//	Omega1.myprint(0,0);
+//	W=Omega1;
+//	W.trans_x(mat1);
+//	mat1.fft(i);
+//	mat1.multipfactorx(i);
+//	mat1.ifft(-i);
+//	W.retrans_x(mat1);
+//	W.myprint(0,1);
+//	V=V*(-i);	
+//	W.myprint(0,2);
+
 
 	U.typefree();
 	V.typefree();
 	W.typefree();
 	Omega1.typefree();
+	Omega2.typefree();
+	Omega3.typefree();
+
+
+
+
+
+
+	MPI::Finalize();
 
 }
 
