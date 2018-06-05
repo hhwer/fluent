@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 
+
 class Mymat
 {
 
@@ -56,7 +57,6 @@ class Mymat
 		void retrans_z(Mymat &mat1);
 
 		void getVW(Mymat &mat1, Mymat &mat2);
-
 		
 		double norm_inf();
 
@@ -124,5 +124,6 @@ class Mymat
 		MPI::Datatype wtensor2_type;
 };
 
+Mymat f(Mymat &Omega1, Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W, Mymat &mat1, double nu, double tau);
 #endif
 

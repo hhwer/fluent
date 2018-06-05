@@ -126,4 +126,27 @@ void Mymat::Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2,
 }
 
 
+Mymat f(Mymat &Omega1, Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W, Mymat &mat1, double nu, double tau)
+{
+	Mymat K(U);
+	//psi = -laplace^{-1} omega 
+	U = Omega1;
+	U.InverseLaplace(mat1,1,-1,-1);
+	U = U*(-1);
+
+	//u(W) = nabla \times psi
+	U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+	U = W;
+	//u = omega \times u
+	U.Times(V,W,Omega1,Omega2,Omega3);
+	//W =nabla \times (Omega\time U)
+	U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+	//V 存储 laplace omega
+	U = Omega1;
+	U.Laplace(mat1,1,-1,-1);
+	K = U*nu - W;
+	K = K*tau;
+	return K;
+}
+
 

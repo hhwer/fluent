@@ -467,7 +467,7 @@ void Mymat::ifft(int k)
 /**
 * @brief 求最大模的平方
 *
-* @returns l_inf^2   
+* @returns l_inf   
 */
 /* ----------------------------------------------------------------------------*/
 double Mymat::norm_inf(void)
@@ -477,12 +477,11 @@ double Mymat::norm_inf(void)
 	double* p = &ele[0];
 	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
-		num1 = *p*(*p);
+		num1 = fabs(*p);
 		p++;
 		num = std::max(num, num1);
-//		num = std::max(num, ele[i]*ele[i]);
 	}
-	num1 = *p*(*p);
+	num1 = fabs(*p);
 	num = std::max(num, num1);
 	return num;
 }

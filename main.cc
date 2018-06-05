@@ -29,12 +29,15 @@ int main(int argc, char** argv)
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
 	Max = 10;
-//	double n3 = pow(N,3);
 
 
 	Mymat U(n,n,n);
 	Mymat V(n,n,n);
 	Mymat W(n,n,n);
+	Mymat K0(n,n,n);
+	Mymat K1(n,n,n);
+	Mymat K2(n,n,n);
+	Mymat K3(n,n,n);
 	Mymat Omega1(n,n,n,0);
 	Mymat Omega2(n,n,n);
 	Mymat Omega3(n,n,n);
@@ -67,43 +70,21 @@ int main(int argc, char** argv)
 	
 
 	Omega1.getF(N);
-	Omega2 = Omega1*(1-3*nu*tau);
-	Omega2.myprint(0,2);
 
-//	for(int j=0;j<Max;j++)
-//	{	
-//		// -laplace psi = omega  (psi 存储在U中)
-		U = Omega1;
-		U.InverseLaplace(mat1,1,-1,-1);
-		U = U*(-1);
-		
-
-		//检查U-Omega1
-		V = Omega1-U;
-		V.myprint(0,1);
-	
-		//u(W) = nabla \times psi
-		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-
-		
-		U = W;
-	
-		//u = omega \times u
-		U.Times(V,W,Omega1,Omega2,Omega3);
-		//W =nabla \times (Omega\time U)
-		U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-	
-		//V 存储 laplace omega
-		V = Omega1;
-		V.Laplace(mat1,1,-1,-1);
-		
-		V = V*nu - W;
-		
-		Omega1 = Omega1 + V*tau;
-//		if(myid==0)
-//		std::cout<<j<<std::endl;
-//	}
-	Omega1.myprint(0,1);
+	for(int j=0;j<Max;j++)
+	{	
+		K0 = Omega1;
+		K1 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1 = K0 + K1*0.5;
+		K2 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1 = K0 + K2*0.5;
+		K3 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1 = K0 + K3;
+		Omega1 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1 = K0 + (K1+K2*2+K3*2+Omega1)*(1.0/6);
+		if(myid==0)
+		std::cout<<j<<std::endl;
+	}
 //		
 //
 //		
@@ -124,11 +105,11 @@ int main(int argc, char** argv)
 //		{
 			stop = clock();
 			stop1 = time(NULL);
-	//		if(myid==0)
-	//		{
+			if(myid==0)
+			{
 				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
 				std::cout << "time:" << 														(stop1-start1)<< std::endl;
-	//		}
+			}
 //			break;
 //		}
 //  	
@@ -139,12 +120,6 @@ int main(int argc, char** argv)
 	Omega1.typefree();
 	Omega2.typefree();
 	Omega3.typefree();
-//	U.~Mymat();
-//	V.~Mymat();
-//	W.~Mymat();
-//	Omega1.~Mymat();
-//	Omega2.~Mymat();
-//	Omega3.~Mymat();
 
 
 	MPI::Finalize();
