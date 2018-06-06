@@ -43,8 +43,15 @@ class Mymat
 		void Laplace(Mymat &mat1, int i, int j, int k);
 		void InverseLaplace(Mymat &mat1, int i, int j, int k);
 		void NablaTimes(Mymat &V, Mymat &W, Mymat &mat1, int i, int j);
+		
+		void bigby(Mymat &U);	
+		void smallby(Mymat &bigU);	
+		
 		void Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3);	
-		double f(Mymat &Omega2, Mymat &Omega3, Mymat &U, Mymat &V								, Mymat &W, Mymat &mat1, double nu, double tau, int &sig);
+		void Times_v2(Mymat &V, Mymat &W, Mymat &Omega1, Mymat &Omega2, Mymat &Omega3,Mymat &mat1, Mymat &bigU, Mymat &bigV, Mymat &bigW, Mymat &bigOmega1, Mymat &bigOmega2, Mymat &bigOmega3, Mymat &bigmat1);
+		double f(Mymat &Omega2, Mymat &Omega3, Mymat &U, Mymat &V, Mymat &W, Mymat &mat1,Mymat &bigOmega1, Mymat &bigOmega2, Mymat &bigOmega3, Mymat &bigU, Mymat &bigV, Mymat &bigW, Mymat &bigmat1, double nu, double tau, int &sig);
+
+
 		void getOmega0(int N);
 		void getF(int N);
 		void getF1(int N);

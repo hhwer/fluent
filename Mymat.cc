@@ -27,6 +27,8 @@ Mymat::Mymat(int l, int m, int n )
 	status = 0;
 	plan_on = 0;
 	ele = (double*) fftw_malloc( sizeof(double)*l*m*n );
+	if(ele==NULL)
+		exit(0);
 	double* p=&ele[0];
 	for(int i=0;i<l*m*n-1;i++)
 	{
@@ -46,6 +48,9 @@ Mymat::Mymat(int l, int m, int n,int num)
 	plan_on = 0;
 	double num0 = (double)num; 
 	ele = (double*) malloc( sizeof(double)*l*m*n );
+	if(ele==NULL)
+		exit(0);
+
 	double* p=&ele[0];
 	for(int i=0;i<l*m*n-1;i++)
 	{
@@ -64,6 +69,8 @@ Mymat::Mymat(Mymat& mat1)
 	status = 0;
 	plan_on = 0;
 	ele = (double*) malloc( sizeof(double)*size_l*size_m*size_n );
+	if(ele==NULL)
+		exit(0);
 	double* p=&ele[0];
 	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{

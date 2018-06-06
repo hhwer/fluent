@@ -1,0 +1,454 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{xcolor}
+  \author{黄晃\ 数院 1701210098 }
+  \title{计算流体力学作业二}
+\begin{document}
+  \maketitle
+
+\section{问题}
+$[-\pi,\pi]^3$中周期边值的不可压流体的计算.考虑3D涡-向量势公式
+\begin{equation*}
+  \left\{
+  \begin{split}
+       & \frac{\partial\omega}{\partial t}+\nabla \times(\omega \times \mathbf{u}) = \nu \triangle \omega \\
+       & \omega = \nabla \mathbf{u},\nabla \cdot \mathbf{u}=0 \\
+       & \mathbf{u}(\mathbf{x},0) = \mathbf{u}_0(\mathbf{x}).
+  \end{split}
+  \right.
+\end{equation*}
+\subsection{数值算法思路}
+以一阶Euler为例(之后替换成三阶显示Runge-Kutta方法):
+\begin{itemize}
+  \item 解$-\triangle_h \psi^n = \omega^n$
+  \item 计算$\mathbf{u}^n=\nabla_h \psi^n$
+  \item 通过$\frac{\omega^{n+1}-\omega^n}{\tau}+\nabla_h\times(\omega^n \times \mathbf{u}^n) = \nu \triangle \omega^n$计算$\omega^{n+1}$
+\end{itemize}
+
+\section{伪谱方法}
+对于周期函数f(x),其傅里叶展开为
+$$
+f(x) = \sum\limits _{m=-\infty }^{\infty}\hat{f}_{m}e^{1jmx},\ x\in (-\pi,\pi)
+$$
+其中
+$$
+\hat{f}_{m}=\frac{1}{2\pi}\int_{-\pi}^{\pi}f(x)e^{-1jmx}dx.
+$$
+
+
+伪谱法实际上相当于考虑f在空间$S_{n}$中的投影
+$$
+I_n(f(x)) = \sum\limits_{m=-n}^{n-1}\hat{f}_{m}e^{1jm)x},\ x\in (-\pi,\pi)
+$$
+\paragraph{基函数}
+取插值节点为
+$x_{i,j,k}=(\frac{(i+1/2)\pi}{n},\frac{(j+1/2)\pi}{n},\frac{(j+1/2)\pi}{n})\ i,j,k=-n,-n+1,\cdots,n-1$
+那么有
+$$
+I_n(f(x)) = \sum\limits_{i,j,k=0}^{2n-1}f(x_{i,j,k})g_{i,j,k}(x),\ x\in (-\pi,\pi)
+$$
+其中$g_{i,j,k}(x)$是$S_{n}$中满足$g_{i,j,k}(x_{i1,j1,k1})=\delta_{(i,j,k)(i1,j1,k1)}$的三角多项式.
+\paragraph{}
+利用正交性,我们有
+$$
+g_{i,j,k}(x) = \frac{1}{(2n)^3} \sum\limits_{p,l,m=-n}^{n-1}e^{j(p,l,m)(x-x_{i,j,k})}
+$$
+为了简洁起见,下面在不引起混淆的情况下,用p代替(p,l,m),用i代替(i,j,k).
+\paragraph{}
+因此我们有
+\begin{equation}
+ \begin{split}
+ I_{n}f(x) &= \sum\limits_{i=0}^{2n-1}f(x_{i})\frac{1}{(2n)^3} \sum\limits_{p=-n}^{n-1}e^{jp(x-x_i)}     \\
+   &= \sum\limits_{p=-n}^{n-1}e^{jp(x+\pi)} \frac{1}{(2n)^3} \sum\limits_{i=0}^{2n-1}f(x_{i})e^{-jp(x_i+\pi)}
+ \end{split}
+\end{equation}
+若我们记
+$$
+\hat{f}_p = \frac{1}{(2n)^3} \sum\limits_{i=0}^{2n-1}f(x_{i})e^{-jp(x_i+\pi)}
+$$
+则
+$$
+I_n(f(x)) =  \sum\limits_{p=-n}^{n-1}\hat{f}_p e^{jp(x+\pi)}
+$$
+注意到在节点$x_{i}$上有$I_nf(x_i)=f(x_i))$成立,所以我们建立$f_i,\ i=0,1,\cdots,2n-1$与$\hat{f}_p,\ p=-n,-n+1,\cdots,n-1$之间的一个一一映射.
+\paragraph{}
+将$x_i$的值代入,我们有
+\begin{equation}
+ \begin{split}
+ f_i &= \sum\limits_{p=-n}^{n-1}\hat{f}_p e^{jp(i+1/2)\pi/n}   ,\ i=-n,-n+1\cdots,n-1  \\
+  \hat{f}_p &= \frac{1}{(2n)^3} \sum\limits_{i=0}^{2n-1}f(x_{i})e^{-jp(i+1/2)\pi/n} ,\ p=-n,-n+1\cdots,n-1
+ \end{split}
+\end{equation}
+
+投影$I_n(f)$写成
+$$
+I_nf(x) =  \sum\limits_{p=-n}^{n-1}\hat{f}_p e^{jpx}
+$$
+
+
+
+\subsection{1维情况下对奇偶性质的保持}
+\paragraph{偶函数}
+对1维的长为2n的偶序列$\{f_{-n},f_{-n+1}\cdots,f_{n-1}\}$,即$f_{k}=f_{-1-k}$,有
+\begin{equation*}
+  \begin{split}
+     \hat{f}_{p}    &= \frac{1}{2n}\sum\limits_{i=-n}^{n-1} f_{i} e^{-jp(i+1/2)\pi/n} \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} f_{i} e^{-jp(i+1/2)\pi/n}+f_{-1-i}e^{-jp(-1-i+1/2)\pi/n} \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} f_{i} (e^{-jp(i+1/2)\pi/n}+e^{-jp(-i-1/2)\pi/n}) \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} 2f_{i} \cos(p(i+1/2)\pi/n)
+  \end{split}
+\end{equation*}
+所以有$\hat{f}_p=\hat{f}_{-p}$.且$\hat{f}_{-n}=\frac{1}{2n}\sum\limits_{i=0}^{n-1} 2f_{i} \cos(-(i+1/2)\pi)=0 $
+
+而对$\hat{f}_p=\hat{f}_{-p}$的频谱,假设其满足$\hat{f}_{-n}=0$,则其逆变换的结果$f_i$有
+\begin{equation*}
+  \begin{split}
+     f_{i}          &= \sum\limits_{p=-n}^{n-1} \hat{f}_{p} e^{jp(i+1/2)\pi/n} \\
+                    &= \sum\limits_{p=1}^{n-1} \hat{f}_{p} e^{jp(i+1/2)\pi/n}+\hat{f}_{-p}e^{j(-1-p)(i+1/2)\pi/n} + \hat{f}_{0}  \\
+                    &= \sum\limits_{p=1}^{n-1} \hat{f}_{p} (e^{jp(i+1/2)\pi/n}+e^{j(-1-p)(i+1/2)\pi/n}) + \hat{f}_{0}\\
+                    &= \sum\limits_{p=1}^{n-1} \hat{f}_{p} 2\cos(p(i+1/2)\pi/n)+ \hat{f}_{0}
+  \end{split}
+\end{equation*}
+则$f_{k}=f_{-1-k}$成立
+\paragraph{奇函数}
+对于奇序列,即$f_{k}=-f_{-1-k}$,
+\begin{equation*}
+  \begin{split}
+     \hat{f}_{p}    &= \frac{1}{2n}\sum\limits_{i=-n}^{n-1} f_{i} e^{-jp(i+1/2)\pi/n} \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} f_{i} e^{-jp(i+1/2)\pi/n}+f_{-1-i}e^{-jp(-1-i+1/2)\pi/n} \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} f_{i} (e^{-jp(i+1/2)\pi/n}-e^{-jp(-i-1/2)\pi/n}) \\
+                    &= \frac{1}{2n}\sum\limits_{i=0}^{n-1} -2jf_{i} \sin(p(i+1/2)\pi/n)
+  \end{split}
+\end{equation*}
+其中$\hat{f}_0=0$,我们实际存储$\{b_0,b_1,\cdots,b_{n-1}\} = \{1j\hat{f}_1,1j\hat{f}_2,\cdots,1j\hat{f}_{n-1},-1j\hat{f}_{-n}\}$
+则有$b_p=\frac{1}{2n}\sum\limits_{i=0}^{n-1} 2f_{i} \sin((p+1)(i+1/2)\pi/n)$
+
+而对$\hat{f}_p=-\hat{f}_{-p}$的频谱,假设其满足$\hat{f}_{0}=0$,则其逆变换的结果$f_i$有
+\begin{equation*}
+  \begin{split}
+     f_{i}          &= \sum\limits_{p=-n}^{n-1} \hat{f}_{p} e^{jp(i+1/2)\pi/n} \\
+                    &= \sum\limits_{p=1}^{n-1} \hat{f}_{p} e^{jp(i+1/2)\pi/n}+\hat{f}_{-p}e^{j(-1-p)(i+1/2)\pi/n} + \hat{f}_{-n}e^{-j(i+1/2)\pi}  \\
+                    &= \sum\limits_{p=1}^{n-1} \hat{f}_{p} (e^{jp(i+1/2)\pi/n}-e^{j(-1-p)(i+1/2)\pi/n}) + (-1)^{i-1}*1j\hat{f}_{-n}\\
+                    &= \sum\limits_{p=1}^{n-1} 2j\hat{f}_{p} \sin(p(i+1/2)\pi/n)+ (-1)^{i}*(-1j)\hat{f}_{-n} \\
+                    &= \sum\limits_{p=1}^{n-1} 2b_{p-1} \sin(p(i+1/2)\pi/n)+  (-1)^{i}b_{n-1}\\
+                    &= \sum\limits_{p=0}^{n-2} 2b_{p} \sin((p+1)(i+1/2)\pi/n)+  (-1)^{i}b_{n-1}\\
+  \end{split}
+\end{equation*}
+则$f_{k}=-f_{-1-k}$成立
+\subsection{FFTW}
+提供了1维的实奇(偶)函数的DFT(Type-2,3DCT,DST)
+\begin{equation}
+ \begin{split}
+ REDFT01 & : \   (a_0,a_1,\cdots,a_{n-1}) \rightarrow (b_0,b_1,\cdots,b_{n-1})     \\
+  b_p &=\  2\sum\limits_{i=0}^{n-1}a_i \cos(p(i+1/2)/n)  ,\ p=0,1\cdots,n-1
+ \end{split}
+\end{equation}
+\begin{equation}
+ \begin{split}
+ REDFT10 & : \   (a_0,a_1,\cdots,a_{n-1}) \rightarrow (b_0,b_1,\cdots,b_{n-1})     \\
+  b_p &=\ a_0 + \sum\limits_{i=1}^{n-1}a_i \cos((p+1/2)i/n)  ,\ p=0,1\cdots,n-1
+ \end{split}
+\end{equation}
+\begin{equation}
+ \begin{split}
+ RODFT01 & : \   (a_0,a_1,\cdots,a_{n-1}) \rightarrow (b_0,b_1,\cdots,b_{n-1})     \\
+  b_p &=\  2\sum\limits_{i=0}^{n-1}a_i \sin((p+1)(i+1/2)/n)  ,\ p=0,1\cdots,n-1
+ \end{split}
+\end{equation}
+\begin{equation}
+ \begin{split}
+ RODFT10 & : \   (a_0,a_1,\cdots,a_{n-1}) \rightarrow (b_0,b_1,\cdots,b_{n-1})     \\
+  b_p &=\ (-1)^{p}a_{n-1} + \sum\limits_{i=0}^{n-2}a_i \sin((p+1/2)(i+1)/n)  ,\ p=0,1\cdots,n-1
+ \end{split}
+\end{equation}
+对于1维情形,令N=2n,对偶的序列有
+\begin{equation}
+ \begin{split}
+ [\hat{f}_0,\hat{f}_1,\cdots,\hat{f}_{n-1}] & = \  \frac{1}{2n}  REDFT01( [f_0,f_1,\cdots,f_{n-1}] )  \\
+  [f_0,f_1,\cdots,f_{n-1}] &=\  REDFT10( [\hat{f}_0,\hat{f}_1,\cdots,\hat{f}_{n-1}] )
+ \end{split}
+\end{equation}
+对奇的序列有
+\begin{equation}
+ \begin{split}
+ [1j\hat{f}_1,1j\hat{f}_2,\cdots,\hat{f}_{n-1},-1j\hat{f}_{-n}] & = \  \frac{1}{2n}  RODFT01( [f_0,f_1,\cdots,f_{n-1}] )  \\
+  [f_0,f_1,\cdots,f_{n-1}] &=\  RODFT10( [1j\hat{f}_1,1j\hat{f}_2,\cdots,\hat{f}_{n-1},-1j\hat{f}_{-n}] )
+ \end{split}
+\end{equation}
+
+\subsection{三维FFT的实现}
+回到我们需要的三维情形
+
+\begin{equation}
+ \begin{split}
+f_{i,j,k} & = \sum\limits_{p,l,m=-n}^{n-1}\hat{f}_{p,l,m} e^{j((p+1/2)(i+1/2)+(l+1/2)(j+1/2)+(m+1/2)(k+1/2))\pi/n} \\
+ &= \sum\limits_{p=-n}^{n-1} \sum\limits_{l=-n}^{n-1} \sum\limits_{m=-n}^{n-1}\hat{f}_{p,l,m} e^{j((i+1/2)+(l+1/2)(j+1/2)+(m+1/2)(k+1/2))\pi/n} \\
+ &= \sum\limits_{p=-n}^{n-1} \left[\sum\limits_{l=-n}^{n-1} \left(\sum\limits_{m=-n}^{n-1}\hat{f}_{p,l,m} e^{j(m+1/2)(k+1/2))\pi/n}\right) e^{j(l+1/2)(j+1/2)\pi/n} \right] e^{j(p+1/2)(i+1/2)\pi/n}
+ \end{split}
+\end{equation}
+
+\begin{equation}
+ \begin{split}
+\hat{f}_{i,j,k} & = \frac{1}{(2n)^3}\sum\limits_{p,l,m=-n}^{n-1}f_{p,l,m} e^{-j((p+1/2)(i+1/2)+(l+1/2)(j+1/2)+(m+1/2)(k+1/2))\pi/n} \\
+ &= \sum\limits_{p=-n}^{n-1} \sum\limits_{l=-n}^{n-1} \sum\limits_{m=-n}^{n-1}f_{p,l,m} e^{-j((i+1/2)+(l+1/2)(j+1/2)+(m+1/2)(k+1/2))\pi/n} \\
+ &= \sum\limits_{p=-n}^{n-1} \left[\sum\limits_{l=-n}^{n-1} \left(\sum\limits_{m=-n}^{n-1}f_{p,l,m} e^{-j(m+1/2)(k+1/2))\pi/n}\right) e^{-j(l+1/2)(j+1/2)\pi/n} \right] e^{-j(p+1/2)(i+1/2)\pi/n}
+ \end{split}
+\end{equation}
+可以看到,三维的DFT其实就是按照三个方向依次进行一维的FFT,逆变换也类似.
+\subsection{离散微分算子}
+\paragraph{$\Delta f$}
+对于$\Delta$算子,我们有
+$$
+\Delta I_n(f(x)) =  \sum\limits_{p=-n}^{n-1}-p^2\hat{f}_p e^{jpx}
+$$
+由此,我们得到了$f(x_i)$与$\Delta f(x_i)$的Fourier系数的关系.下面推导离散的算子
+
+假设f的对称性为$(\delta_1,\delta_2,\delta_3)$,$\delta=1,-1$分别表示关于x对称与反对称,2,3对应于y,z.
+
+在$[-\pi,\pi]^3$内一共$(2n)^3$的点,三维DFT由三个方向的DFT复合而成,由DFT的线性性质,我们知道对x方向的变换,不会改变y,z方向上的对称性.
+\begin{itemize}
+  \item 若$\delta_1=1$,则每一行关于x的DFT可由上面的DCT运用在前n个点上得到,结果为 $[\hat{f}_0,\hat{f}_1,\cdots,\hat{f}_{n-1}]$
+  \item 若$\delta_1=1$,则每一行关于x的DFT可由上面的DOT运用在前n个点上得到,结果为 $[1j\hat{f}_1,1j\hat{f}_2,\cdots,1j\hat{f}_{n-1},-1j\hat{f}_{-n}]$
+\end{itemize}
+需要注意的是,两种情况我们都可以从中恢复整个频谱.然后对得到数据继续y,z上的操作,最后得到的结果的(i,j,k)位置实际为f的三维的傅里叶系数的频率为$(\phi(i,\delta_1),\phi(j,\delta_2),\phi(k,\delta_3))$的系数信息
+\begin{equation*}
+  \phi(i,\delta)=\left\{
+  \begin{aligned}
+     i ,&\  \delta = 1 \\\smash[]{  \left\{
+     \begin{aligned}
+        i+1 ,&\  i<n-1 \\
+         -n ,&\  i=n-1 \\
+     \end{aligned}\right.}  &\  \delta =-1 \\
+  \end{aligned} \right.
+\end{equation*}
+然后在每个位置乘对应的$-\phi(i,\delta_1)^2-\phi(j,\delta_2)^2-\phi(k,\delta_3)^2$,(在没有显式存储的位置也乘以对应的因子)易见这样不会改变频谱每个方向上的对称性,所以直接对此时所存储的频率做z方向的逆变换，相当于对$\Delta f$的傅里叶系数做z方向的逆变换,之后对y,x有相同的结果.所以最终得到的是$\Delta f_i,j,k$
+\paragraph{$\partial_x f$}
+对于1维情况下的求导,我们有
+$$
+\partial I_n(f(x))/\partial x =  \sum\limits_{p=-n}^{n-1}1jp\hat{f}_p e^{jpx}
+$$
+只用考虑一行的DFT即可,实际的数据列为$f_{-n},f_{-n+1},\cdots,f_{n-1}$,存储的仅有$f_0,f_1,\cdots,f_{n-1}$.分奇偶两种情况
+\paragraph{偶的情形}
+  f为偶,即$f_i=f_{-1-i}$时,DFT结果为$[\hat{f}_0,\hat{f}_1,\cdots,\hat{f}_{n-1}]$,且$\hat{f}_i=\hat{f}_{-i},\hat{f}_{-n}=0$,乘以p后得到$f^0=\partial I_n(f(x))/\partial x $的傅里叶系数$ \frac{\hat{f^0}_p}{1j}$,容易看出$\hat{f^0}_i=-\hat{f^0}_{-i}$,是一个满足$\hat{f^0}_0=0$奇序列.
+  
+  要从中得到$f^0_0,f^0_0,\cdots,f^0_{n-1}$,我们需要对$[1j\hat{f^0}_1,1j\hat{f^0}_2,\cdots,\hat{f^0}_{n-1},-1j\hat{f^0}_{-n}]$做IDST
+  
+  其中$\hat{f^0}_{-n}=nj*\hat{f}_{-n}=0$.而我们存储的结果此时为$[\hat{f^0} _0/1j,\hat{f^0}_1/1j,\cdots,\hat{f^0}_{n-2}/1j,\hat{f^0}_{n-1}/1j]$,将其前移一位,然后在最后补零,再乘$-1=(1j)^2$,则变为$[1j\hat{f^0} _1,1j\hat{f^0}_2,\cdots,1j\hat{f^0}_{n-1},0]=[1j\hat{f^0} _1,1j\hat{f^0}_2,\cdots,1j\hat{f^0}_{n-1},-1j\hat{f^0}_{-n}]$.对其进行IDST则有$f^0_i$.
+  
+\paragraph{奇的情形}
+ f为奇,即$f_i=-f_{-1-i}$时,DFT结果为$[1j\hat{f}_1,1j\hat{f}_2,\cdots,1j\hat{f}_{n-1},-1j\hat{f}_{-n}]$,且$\hat{f}_i=-\hat{f}_{-i},\hat{f}_{0}=0$,乘以p(在存储的n个位置其实是乘$[1,2,\cdots,n-1,-n]$)后得到$f^0=\partial I_n(f(x))/\partial x $的傅里叶系数$ \hat{f^0}_p$(频率-n的项为$-\hat{f^0}_{-n}$),容易看出$\hat{f^0}_i=-\hat{f^0}_{-i}$,但是它不满足$\hat{f^0}_{-n}=0$,所以不能直接通过IDCT来得到$f^0_i$,只能将$\hat{f^0} _{-n}$强行设为0来完成.会产生额外的误差.但由于已知$f^0$是个偶函数,所以这样设置是合理的.
+ 
+ 要从中得到$f^0_0,f^0_0,\cdots,f^0_{n-1}$,我们需要对$[\hat{f^0}_0,\hat{f^0}_1,\cdots,\hat{f^0}_{n-1}]$做IDCT,存储的为$[\hat{f^0}_1,\hat{f^0}_2,\cdots,\hat{f^0}_{n-1},-\hat{f^0}_{-n}]$,后移一位,然后在最开始补零即可.对其进行IDCT即可.
+ 
+\paragraph{note}
+上面的操作,都是对实数进行的,所以我们的数据可以存储为实数
+ 
+
+ 
+ 
+\section{计算中对称性}
+
+\subsection{初值的对称性}
+
+  \begin{equation*}
+  \begin{split}
+      \mathbf{u}(\mathbf{x},0)&= \left(\begin{matrix}
+                          u(\mathbf{x},0) \\
+                          v(\mathbf{x},0) \\
+                          w(\mathbf{x},0)
+                        \end{matrix}\right)
+                     = \left(\begin{matrix}
+                          \sin x(\cos 3y\cos z - \cos y \cos 3z) \\
+                           \sin y(\cos 3z\cos x - \cos z \cos 3x) \\
+                           \sin z(\cos 3x\cos y - \cos x \cos 3y)
+                        \end{matrix}\right)
+  \end{split}
+  \end{equation*}
+
+$\mathbf{u}$中,u关于x反对称,关于y,z对称,2,3(v,w)分量关于x,y,z轮换
+
+    \begin{equation*}
+  \begin{split}
+      \omega(\mathbf{x},0)&= \left(\begin{matrix}
+                          \omega_1(\mathbf{x},0) \\
+                          \omega_2(\mathbf{x},0) \\
+                          \omega_3(\mathbf{x},0)
+                        \end{matrix}\right) =\nabla \times \mathbf{u}(\mathbf{x},0)  \\
+                       & =\left(\begin{matrix}
+                          \partial_y w(\mathbf{x},0) -\partial_z v(\mathbf{x},0) \\
+                          \partial_z u(\mathbf{x},0) -\partial_x w(\mathbf{x},0) \\
+                          \partial_x v(\mathbf{x},0) -\partial_y u(\mathbf{x},0)
+                        \end{matrix}\right)
+                          = \left(\begin{matrix}
+                          -2\cos 3x\sin y\sin z + 3\cos x (\sin 3z\sin y + \sin z \sin 3y) \\
+                          -2\cos 3y\sin z\sin x + 3\cos y (\sin 3x\sin z + \sin x \sin 3z) \\
+                          -2\cos 3z\sin x\sin y + 3\cos z (\sin 3y\sin x + \sin y \sin 3x)
+                        \end{matrix}\right)
+  \end{split}
+  \end{equation*}
+
+$\mathbf{\omega}$中,$\omega_1$关于x对称,关于y,z反对称,2,3分量关于x,y,z轮换
+
+\paragraph{$\psi$ 的确定}
+$-\triangle \psi = \omega$,满足周期边值,然后,由于方程本身不关注$\psi$的函数值,而只是需要通过其求$\mathbf{u}=\nabla \psi$,所以可限制$\psi$的傅里叶系数中常数项系数为0.我们断言$\psi$的三个分量有与$\omega$相同的对称性,这会后面给予证明.
+
+
+因此,关于初始值,我们有:$\mathbf{u}(\omega,\psi)$的第一个分量关于x反对称(对称),关于y,z对称(反对称),第二,三个分量有类似的结果(将x,y,z顺序轮换即可).
+
+
+\subsection{计算过程中对对称性的保持}
+空间上我们采用拟谱方法进行计算
+\paragraph{DFT的性质}
+x(n)是长度为N的序列,X(k)=DFT[x(n)],则
+\begin{itemize}
+  \item 若x纯实(虚),且x对称,即x(n)=x(N-1-n),则X(k)=X(N-1-k),且纯实(虚).
+  \item 若x纯实(虚),且x反对称,即x(n)=-x(N-1-n),则X(k)=-X(N-1-k),且纯虚(实).
+\end{itemize}
+显然,对于逆变换IDFT,也有一样的结果
+
+\subsubsection{DFT(IDFT)对对称性的保持}
+对于$u\in \rm{I\!R}^{n \times n \times n}$,u在x,y,z有对称性或者反对称性,则对u的所有行做一次DFT(IDFT),由上面的性质可知,关于x的(反)对称性是保持的,此外,由DFT(IDFT)的线性性质,此时关于y,z的(反)对称性是保持的.所以对单个方向做DFT(IDFT)不会破坏三个方向上的对称性
+
+而一个三维DFT(IDFT)可以通过对三个方向依次做DFT(IDFT)实现,所有三维情况也保持对称性
+\subsubsection{$\triangle$以及$\triangle^{-1}$对对称性的保持}
+对于$\triangle \omega$的第一个分量$\triangle \omega_1$,有
+$$
+\triangle \omega_1 = -IDFT( K \circ DFT(\omega_1))
+$$
+其中$K(i,j,k)= \lambda(i)^2+\lambda(j)^2+\lambda(k)^2$
+\begin{equation*}
+  \lambda(i)= i+\frac{1}{2}-n
+\end{equation*}
+易见K关于x,y,z均是对称的,所以$K(K^{-1})\circ u$不改变u的对称性.其中$K^{-1}$只会出现在解关于$\psi$的Poisson方程,$\psi_1=-\triangle^{-1}\omega_1=-IDFT( K^{-1} \circ DFT(\omega_1))$,由之前的分析,可直接令$\psi$的频率中对应K中0的项恒为0,所以是良定义且保持对称性的.
+
+\subsubsection{$\nabla \times \psi$对对称性的影响}
+假设$\psi$具有与初值中所具有的对称性
+\begin{equation*}
+\mathbf{u} = \left(\begin{matrix}
+                          u \\
+                          v \\
+                          w
+                        \end{matrix}\right) =\nabla \times \mathbf{\psi}
+                        =\left(\begin{matrix}
+                          \partial_y \psi_3 -\partial_z \psi_2 \\
+                          \partial_z \psi_1 -\partial_x \psi_3 \\
+                          \partial_x \psi_2 -\partial_y \psi_1
+                        \end{matrix}\right)
+\end{equation*}
+在这里$\partial$也是通过DFT实现的,首先考察$\partial_x u$对对称性的影响
+\paragraph{$\partial_x u$对u对称性的影响}
+我们知道$\partial_x u = 1i *IDFT ( M\circ DFT(u) )$,这里DFT以及IDFT都是一维的,其中$M(i,j,k)= \lambda(i)$,所以M关于x反对称,关于y,z对称,因此,有:$\partial_x u$保持y,z方向上的(反)对称,同时将x方向的对称(反对称)改变为反对称(对称).
+
+回到$\nabla \times \psi$,第一个分量$u=\partial_y \psi_3 -\partial_z \psi_1$ ,其中$\psi_3$关于z对称,关于x,y反对称;$\psi_2$关于y对称,关于z,x反对称.所以$\partial_y \psi_3$关于x反对称,关于y,z对称;$\partial_z \psi_1$关于x反对称,关于y,z对称.因此有u关于x反对称,关于y,z对称.类似可以推导出第2,3个分量的相应结果
+
+因此有$\nabla \times \psi$第一个分量具有与$\psi_1$恰好相反的对称性(只在在这一节的假设下成立).
+\subsubsection{$\omega$对称性的保持}
+$\mathbf{u},\psi$的对称性的保持已经在上面给予了说明,下面考察$\omega$.由于时间上的离散采用的Runge-kutta方法,所以只需要说明$\nabla\times(\omega\times \mathbf{u}) - \nu \triangle \omega$具有和$\omega$相同的对称性即可.
+
+显然我们只需单独说明其中的非线性项$\nabla\times(\omega\times \mathbf{u})$.对于第一个分量,有:
+$$(\omega\times \mathbf{u})_1 = \omega_2w-\omega_3v$$
+其中$\omega_2$关于y对称,关于z,x反对称,$\omega_3$关于z对称,关于x,y反对称;v关于y反对称,关于z,x对称,w关于z反对称,关于x,y对称.所以$\omega_2w$关于x反对称,关于y,z对称.
+
+所以$(\omega\times \mathbf{u})_1$具有与$\omega_1$相反的对称性,类似可知第2,3个分量有相应的结果.根据之前所推导的$\nabla\times$的性质,我们有$\nabla\times(\omega\times \mathbf{u})$保持$\omega$的对称性
+
+\subsection{三个分量关于x,y,z轮换的性质}
+对于初值我们还有
+\begin{equation*}
+  \begin{split}
+     u(x,y,z) & =v(z,x,y) = w(y,z,x) \\
+       \omega_1(x,y,z) & =\omega_2(z,x,y) = \omega_3(y,z,x) \\
+       \psi_1(x,y,z) & =\psi_1(z,x,y) = \psi_1(y,z,x)
+  \end{split}
+\end{equation*}
+
+我们断言这种轮换的性质会在计算中得到保持
+
+首先易见$\triangle,\triangle^{-1}$以及数乘,加减都是保持三个分量的轮换的,只需考察$\times$的影响.
+\subsubsection{$\nabla \times \mathbf{u}$}
+以$\mathbf{u}$为例,轮换性质可以写成
+$$
+w(x,y,z) = u(z,x,y),v(x,y,z)=u(y,z,x).
+$$
+这在x,y,z是离散点对的时候成立.对于连续情况
+\begin{equation*}
+\begin{split}
+  \nabla \times \mathbf{u} = &
+  \left(\begin{matrix}
+    \partial w /\partial y - \partial v / \partial z \\
+    \partial u /\partial z - \partial w / \partial x \\
+    \partial v /\partial x - \partial u / \partial y
+  \end{matrix}\right)=
+  \left(\begin{matrix}
+    \partial u(z,x,y) /\partial y - \partial u(y,z,x) / \partial z \\
+    \partial u(x,y,z) /\partial z - \partial u(z,x,y) / \partial x \\
+    \partial u(y,z,x) /\partial x - \partial u(x,y,z) / \partial y
+  \end{matrix}\right) \\ =&
+  \left(\begin{matrix}
+    \partial_3 u(z,x,y) - \partial_2 u(y,z,x) \\
+    \partial_3 u(x,y,z) - \partial_2 u(z,x,y) \\
+    \partial_3 u(y,z,x) - \partial_2 u(x,y,z)
+  \end{matrix}\right)
+  \end{split}
+\end{equation*}
+易见连续的$\nabla \times$算子是保持轮换性质的,而我们利用DFT进行离散替代其中连续的$\partial$时,若将其中的$u(x,y,z)$视为离散的$n^3$个点的值,显然有上面的等式依旧成立.
+
+对于$\omega \times \mathbf{u}$,证明方式与上类似,不再赘述.
+\section{算法设计}
+由于出现的所有向量的三个分量都具有轮换性质,所以在计算中,我们都只需要计算第一个分量.然后利用数据的对称性,我们只需要存储1/8个正方体,选择存储$[-\pi,0]^3$的数据(有$(N+1)^3$个点),然后仅在需要做DFT时,我们每次将一个长N+1的数组利用(反)对称补全成2N的数组,然后存储(相)频率空间中的前N+1位.为了方便,下面我们记N=N+1为整体的规模大小
+\subsection{并行部分}
+
+\paragraph{进程数}
+支持进程数为$size^3$的所有选择,但是要求$size^2\|N$要成立.下面记$n=\frac{N}{size}$
+\subsubsection{子进程存储}
+我们将进程号myid表示成$myid=myorder[0]*size^2+myorder[1]*size+myorder[2]$,用该进程存储整个正方体中z方向第myorder[0]层,y方向第myoder[1]层,x方向第myorder[2]层的一个小正方体的数据U(存储u),W(存储$\omega_1$). 正方体规模为n.
+\paragraph{FFT所需的存储}
+我们需要一个x方向长N,y方向长n,z方向高为$\frac{n}{size}$的存储空间B,用来进行某一个方向的fft以及ifft.A,B的存储顺序均为$x>y>z$,即保证x方向数据是连续存储的.
+\paragraph{$\triangle,\triangle^{-1}$所需存储}
+只需用到第一个分量,所以不需要额外存储
+\paragraph{计算$\omega\times\mathbf{u}$所需存储}
+进行这个计算时,之后还需要$\omega$但是不在需要$\mathbf{u}$,所以可以覆盖U,但是得保留W.然后计算第一个分量理论上需要第二三个分量,虽然我们可以通过轮换性质从第一个分量中得到,但在并行中,这里所需的数据需要从别的进程中获得(下一节会详述),所以我们需要额外提供W2,W3,U2,U3来存储接收到的数据.
+
+不能用U来存储U2,U3中的某一个,是因为,接收的同时,也在将U发给别的数据,形成了一个环,且必须在发送U后才允许改写U.但是可以将之后叉乘的结果存在U中.
+
+计算$\nabla \times \mathbf{u},\nabla \times \psi$也类似,除了U2,U3外,不需要额外的存储.
+
+此外,我们将每次新的$\psi_1$直接存储在U内,然后再将$\nabla \times \psi$的结果u存储在U内
+
+\paragraph{总存储}
+综上,每个进程中我们需要6个$n^3$的正方体以及一个长方体B.共$7n^3$的存储.
+\subsubsection{子进程计算任务}
+数乘以及加减直接在每个子进程内完成相应的部分.
+\paragraph{单个方向fft}
+\begin{itemize}
+\item 在进行x方向的fft时,该进程将获取同处于x方向上的共size个进程中的z方向上第myorder[2]部分的数据
+\item 在进行y方向的fft时,该进程将获取同处于y方向上的共size个进程中的z方向上第myorder[1]部分的数据
+\item 在进行z方向的fft时,该进程将获取同处于z方向上的共size个进程中的y方向上第myorder[0]部分的数据
+\end{itemize}
+以n=4,size=2为例,详述第0号进程的信息交互
+\begin{itemize}
+\item 在进行x方向的fft时,进程0获取同处于x方向上进程1中最上两层的数据,即[:,:,0:1],并将其直接接受在长方体B的[n:2n-1,:,:]部分,同时将0进程中A的最上两层存入B的[0:n-1,:,:]中.这样进程0中的B中就有了连续存储的n/size*n个长为N的向量,正好是x方向上这size个进程中需要做1维fft的上两层的向量.
+\item 在进行y方向的fft时,进程0将获取同处于y方向上进程1中最上两层的数据,即[:,:,0:1],与x方向不同的是,我们将利用mpi的传输,将其转置存入B中,这将使得B中存有的连续的长为N的数据恰好是整个大正方体中y方向的向量.
+\item  在进行z方向的fft时,进程0将获取同处于y方向上进程1中y=0,1对应的两层数据,即[:,0:1,:],与x方向不同的是,我们将利用mpi的传输,将其转置存入B中,这将使得B中存有的连续的长为N的数据恰好是整个大正方体中z方向的向量.
+\end{itemize}
+\paragraph{三维fft}
+在如上进行完x方向上的fft后,我们将数据返回原来的进程中的A的对应位置,然后进行y方向,再进行z方向fft.ifft的做法与之类似.
+\paragraph{$\nabla\times\mathbf{u}$}
+先从相应的子进程获得该进程所需的$v,w$.具体的
+\begin{itemize}
+  \item 从$myid_v=myorder[2]*size^2+myorder[0]*size+myorder[1]$按$z> x> y$的顺序传出U,然后在myid进程内以正常的$x> y> z$顺序接收到U2中;
+  \item 从$myid_w=myorder[1]*size^2+myorder[2]*size+myorder[0]$按$y>z>x$的顺序传出U,然后在myid进程内以正常的$x>y>z$顺序接收到U3中;
+\end{itemize}
+相应的,将U从myid按$z> x> y$发送到$myorder[1]*size^2+myorder[2]*size+myorder[0]$的U2,按$z>x>y$发送到$myorder[2]*size^2+myorder[0]*size+myorder[1]$的U3.
+
+之后需要的求导($\partial w/\partial y - \partial v/\partial z$),可以直接通过一维FFT进行
+
+\paragraph{$\omega\times\mathbf{u}$}
+与上面类似,获得相应的$\omega_2,\omega_3,v,w$后,在对应位置相乘即可.所得结果存储在U中
+
+\paragraph{传输顺序}
+详细的,一个进程一次fft需要进行size次传输(本进程内从A到B对应数据用MPI进程到自身的数据传输完成),为了使交互顺利进行,我们对这size个进程编号:$1,2\cdots,size$,每个进程i用sendrecv函数依次向$i,i+1,i+2,\cdots,i-1$发送数据,同事从$i,i-1,i-2\cdots,i+1$接受数据.
+\paragraph{B中的FFT}
+对B中的第i个向量做FFT时,直接对长为N的数组做DCT(偶对称),DST(奇对称).直接给fftw的形参in,out均赋值第i个向量头所在的地址,即一个double* 即可实现该向量的fft,同时结果直接覆盖原数据,而不需要另外的存储抑或是赋值操作.
+\end{document} 
