@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	{
 		aaa=0;
 	}
-	std::cout<<myid<<aaa<<std::endl;
+//	std::cout<<myid<<aaa<<std::endl;
 //	while(aaa==0)
 //	{
 //	}
@@ -71,7 +71,33 @@ int main(int argc, char** argv)
 	mat1.inposition();
 	mat1.getplan();
 
+if(myid==0){
+	std::ifstream infile;
+	std::ofstream outfile;
+	infile.open("normU.txt",std::ios::in);
+	
+	if(!infile.is_open())
+		std::cout << "open infile failure" << std::endl;
 
+	double num[100];
+	int i =0;
+	while(!infile.eof())
+	{
+		infile >> num[i];
+		i++;
+	}
+	
+	infile.close();
+	
+	outfile.open("logU.txt",std::ios::app);
+	if(!outfile.is_open())
+		std::cout << "open file failure" << std::endl;
+	for(int i =0;i<100;i++)
+	{
+		outfile << log(num[i]) << std::endl;		
+	}
+	outfile.close();
+};
 //	U.getF(N);
 //	U.myprint(0,0);
 //	int num = U.norm_inf();
@@ -94,11 +120,11 @@ int main(int argc, char** argv)
 
 
 //f= cosx*siny*sinz  laplace(f)=-3f
-	U.getF(N);
-	V = U*(-3);
-	U.Laplace(mat1,1,-1,-1);
-	U.myprint(0,1);
-	V.myprint(0,2);
+//	U.getF(N);
+//	V = U*(-3);
+//	U.Laplace(mat1,1,-1,-1);
+//	U.myprint(0,1);
+//	V.myprint(0,2);
 
 ////f= cosx*siny*sinz  inverselaplace(f)=-f/3
 //	U.getF(N);

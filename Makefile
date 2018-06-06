@@ -1,6 +1,6 @@
 
 main: test.out
-	mpirun -np 8 ./test.out 4
+	mpirun -np 8 ./test.out 
 test.out: main.o Mymat.o FMymat.o factor.o value.o
 	mpic++ -o test.out main.o FMymat.o Mymat.o factor.o value.o Mymat.h -lfftw3  -Wall -std=c++14
 

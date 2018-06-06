@@ -474,7 +474,7 @@ double Mymat::norm_inf(void)
 {
 	std::vector <double> v;
 	v.resize(size_l*size_m*size_n);
-	for(int i=0;i<size_l*size_m*size_n-1;i++)
+	for(int i=0;i<size_l*size_m*size_n;i++)
 	{
 		v[i] = fabs(ele[i]);
 	}

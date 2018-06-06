@@ -121,9 +121,6 @@ void Mymat::Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2,
 		}
 	}
 
-
-
-
 }
 
 
@@ -148,7 +145,7 @@ double Mymat::f(Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W
 {
 	double norm = 0;
 	//psi = -laplace^{-1} omega 
-	U = *this;
+	U = (*this);
 	U.InverseLaplace(mat1,1,-1,-1);
 	U = U*(-1);
 

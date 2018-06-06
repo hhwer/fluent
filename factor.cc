@@ -94,7 +94,7 @@ void Mymat::multipfactor(void)
 void Mymat::multipfactorx(int k)
 {	
 	int num = -1;
-	double alpha = 2*size_l;
+	double alpha = 2.0*size_l;
 	if(k==1)
 	{
     	for(int j=0;j<size_m*size_n;j++)
@@ -104,7 +104,7 @@ void Mymat::multipfactorx(int k)
 	    	{	
 				//ele[num] = -i*ele[num++];
 	    		
-				ele[num] = -i/alpha*ele[num+1];
+				ele[num] = -i*ele[num+1]/alpha;
 				num++;
 			}
 			ele[num] = 0;
@@ -118,7 +118,7 @@ void Mymat::multipfactorx(int k)
 			num--;
 	    	for(int i=size_l-1;i>0;i--)
 	    	{	
-	    		ele[num] = i/alpha*ele[num-1];
+	    		ele[num] = i*ele[num-1]/alpha;
 				num--;
 			}
 			ele[num] = 0;
