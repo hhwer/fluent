@@ -465,24 +465,21 @@ void Mymat::ifft(int k)
 
 /* --------------------------------------------------------------------------*/
 /**
-* @brief 求最大模的平方
+* @brief 求最大模的平方的位置
 *
 * @returns l_inf   
 */
 /* ----------------------------------------------------------------------------*/
 double Mymat::norm_inf(void)
 {
-	double num = 0;
-	double num1;
-	double* p = &ele[0];
+	std::vector <double> v;
+	v.resize(size_l*size_m*size_n);
 	for(int i=0;i<size_l*size_m*size_n-1;i++)
 	{
-		num1 = fabs(*p);
-		p++;
-		num = std::max(num, num1);
+		v[i] = fabs(ele[i]);
 	}
-	num1 = fabs(*p);
-	num = std::max(num, num1);
+	int num = (int) (std::max_element(v.begin(),v.end()) - v.begin());
+	std::vector<double>().swap(v);
 	return num;
 }
 

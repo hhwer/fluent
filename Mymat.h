@@ -7,6 +7,7 @@
 #include <mpi.h>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <math.h>
 #include <fstream>
 #include <string.h>
@@ -41,6 +42,8 @@ class Mymat
 		void InverseLaplace(Mymat &mat1, int i, int j, int k);
 		void NablaTimes(Mymat &V, Mymat &W, Mymat &mat1, int i, int j);
 		void Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3);	
+		double f(Mymat &Omega2, Mymat &Omega3, Mymat &U, Mymat &V								, Mymat &W, Mymat &mat1, double nu, double tau, int &sig);
+		void getOmega0(int N);
 		void getF(int N);
 		void getF1(int N);
 		void getF2(int N);
@@ -124,6 +127,5 @@ class Mymat
 		MPI::Datatype wtensor2_type;
 };
 
-Mymat f(Mymat &Omega1, Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W, Mymat &mat1, double nu, double tau);
 #endif
 

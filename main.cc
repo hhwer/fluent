@@ -12,10 +12,11 @@ int main(int argc, char** argv)
 	start = clock();
 	start1 = time(NULL);
 
-	int n,Max,myid,totalsize,size;	
+	int n,Max,myid,totalsize,size,num0,num1,num2;	
+	double norm1,norm2;
 	myid = MPI::COMM_WORLD.Get_rank();
 	totalsize = MPI::COMM_WORLD.Get_size();
-	double tau=1, nu=1;
+	double tau=0.0001, nu=1;
 	int N=pow(2,2);
 	if(argc>1)
 	{
@@ -29,6 +30,16 @@ int main(int argc, char** argv)
 	size = pow(totalsize+1.0, 1.0/3);
 	n = N/size;
 	Max = 10;
+	int *gathernum;
+	double *gathernorm;
+	std::vector<double> v(totalsize);
+	if(myid==0)
+	{
+		gathernum = (int*) malloc(sizeof(int)*totalsize);
+		gathernorm = (double*)malloc(sizeof(double)*totalsize);
+		
+	}
+	std::ofstream fp;
 
 
 	Mymat U(n,n,n);
@@ -69,21 +80,46 @@ int main(int argc, char** argv)
 
 	
 
-	Omega1.getF(N);
+	Omega1.getOmega0(N);
 
 	for(int j=0;j<Max;j++)
 	{	
+		num1 = 1;
 		K0 = Omega1;
-		K1 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		norm1 = Omega1.f(Omega2, Omega3, U, V, W, mat1, nu, tau,num1);
+		K1 = Omega1;
 		Omega1 = K0 + K1*0.5;
-		K2 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1.f(Omega2, Omega3, U, V, W, mat1, nu, tau,N);
+		K2 = Omega1;
 		Omega1 = K0 + K2*0.5;
-		K3 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
-		Omega1 = K0 + K3;
-		Omega1 = f(Omega1, Omega2, Omega3, U, V, W, mat1, nu, tau);
+		Omega1.f(Omega2, Omega3, U, V, W, mat1, nu, tau,N);
+		K3 = Omega1;
+		Omega1 += K0;
+		Omega1.f(Omega2, Omega3, U, V, W, mat1, nu, tau,N);
 		Omega1 = K0 + (K1+K2*2+K3*2+Omega1)*(1.0/6);
+		num2 = Omega1.norm_inf();
+		norm2 = fabs(Omega1.ele[num2]);	
 		if(myid==0)
 		std::cout<<j<<std::endl;
+
+		MPI_Gather(&num1, 1, MPI::INT,gathernum,1,MPI::INT,0,MPI::COMM_WORLD);
+		MPI_Gather(&norm1, 1, MPI::DOUBLE,gathernorm,1,MPI::DOUBLE,0,MPI::COMM_WORLD);
+		if(myid==0)
+		{	
+			for(int i=0;i<totalsize;i++) 
+			{
+				v[i] = gathernorm[i];
+			}
+			num0 = (int) (std::max_element(v.begin(),v.end()) - v.begin());
+			num1 = gathernum[num0];
+			norm1 = gathernorm[num0];
+			fp.open("U.txt",std::ios::app);
+			fp<<(num0%size*n+num1%n+0.5)*M_PI/N<<" ";
+			fp<<(num0/size%size*n+num1/n%n+0.5)*M_PI/N<<" ";
+			fp<<(num0/size/size*n+num1/n/n+0.5)*M_PI/N<<" ";
+			fp<<norm1<<std::endl;
+			fp.close();
+		}
 	}
 //		
 //
@@ -93,16 +129,6 @@ int main(int argc, char** argv)
 //
 //
 //
-//		err[0] = (U-mat0).norm_inf();
-//		err[1] = U.norm_inf();
-//		MPI::COMM_WORLD.Allreduce(err, total, 2, MPI_DOUBLE, MPI_MAX);
-//		if(myid==0)
-//		{
-//			std::cout << "relative err= " << total[0]/(total[1]) << " ,err="					<< total[0]	<< " inf_U= "<< total[1] << std::endl;
-//		}/
-//		
-//		if(total[0]/total[1]<1e-24 || total[0]==0) 
-//		{
 			stop = clock();
 			stop1 = time(NULL);
 			if(myid==0)
@@ -110,9 +136,6 @@ int main(int argc, char** argv)
 				std::cout << "cputime:" << 														double(stop-start)/CLOCKS_PER_SEC<< std::endl;
 				std::cout << "time:" << 														(stop1-start1)<< std::endl;
 			}
-//			break;
-//		}
-//  	
 //	}
 	U.typefree();
 	V.typefree();
@@ -120,7 +143,7 @@ int main(int argc, char** argv)
 	Omega1.typefree();
 	Omega2.typefree();
 	Omega3.typefree();
-
+	std::vector<double>().swap(v);
 
 	MPI::Finalize();
 

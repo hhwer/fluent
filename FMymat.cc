@@ -48,13 +48,14 @@ void Mymat::trdIFFT(Mymat &mat1, int i, int j, int k)
 		this->retrans_z(mat1);
 //除N^3
 		double alpha = pow(mat1.size_l*2,3);
-		double* p = &ele[0];
-		for(int i=0;i<size_l*size_m*size_n-1;i++)
-		{
-			*p /= alpha;
-			p++;
-		}
-		*p /= alpha;
+		(*this)/=alpha;
+//		double* p = &ele[0];
+//		for(int i=0;i<size_l*size_m*size_n-1;i++)
+//		{
+//			*p /= alpha;
+//			p++;
+//		}
+//		*p /= alpha;
 }
 
 void Mymat::Laplace(Mymat &mat1, int i, int j, int k)
@@ -77,7 +78,7 @@ void Mymat::InverseLaplace(Mymat &mat1, int i, int j, int k)
 * @brief nable \times u
 *
 * @param V  用来存储第二个分量
-* @param W	用来存储第三个分量 并且存储结果
+* @param W	用来存储第三个分量 
 * @param mat1 做fft的容器
 * @param i	V在z上的对称性 1 对称 -1反对称
 * @param j	W在y上的的对称性
@@ -100,7 +101,7 @@ void Mymat::NablaTimes(Mymat &V, Mymat &W, Mymat &mat1,									int i, int j)
 	mat1.ifft(-i);
 	V.retrans_z(mat1);
 	
-	W= W-V;
+	(*this) = W-V;
 }
 	
 void Mymat::Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2, Mymat &Omega3)
@@ -126,27 +127,49 @@ void Mymat::Times(Mymat &V, Mymat &W, Mymat &Omega1													, Mymat &Omega2,
 }
 
 
-Mymat f(Mymat &Omega1, Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W, Mymat &mat1, double nu, double tau)
+/* --------------------------------------------------------------------------*/
+/**
+* @brief 计算partial Omega / partial t  的半离散的右边 用于RK
+*
+* @param Omega1
+* @param Omega2
+* @param Omega3
+* @param U
+* @param V
+* @param W
+* @param mat1
+* @param nu
+* @param tau
+*
+* @returns   
+*/
+/* ----------------------------------------------------------------------------*/
+double Mymat::f(Mymat &Omega2, Mymat &Omega3, Mymat &U, 						Mymat &V, Mymat &W, Mymat &mat1, double nu, double tau, int &sig)
 {
-	Mymat K(U);
+	double norm = 0;
 	//psi = -laplace^{-1} omega 
-	U = Omega1;
+	U = *this;
 	U.InverseLaplace(mat1,1,-1,-1);
 	U = U*(-1);
 
 	//u(W) = nabla \times psi
-	U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
-	U = W;
+	U.NablaTimes(V,W,mat1,-1,-1);  //结果在U中
+	if(sig==1)
+	{
+		sig = U.norm_inf();
+		norm = fabs(U.ele[sig]);
+	}
 	//u = omega \times u
-	U.Times(V,W,Omega1,Omega2,Omega3);
+	U.Times(V,W,*this,Omega2,Omega3);
 	//W =nabla \times (Omega\time U)
-	U.NablaTimes(V,W,mat1,-1,-1);  //结果在W中
+	U.NablaTimes(V,W,mat1,-1,-1);  //结果在U中
 	//V 存储 laplace omega
-	U = Omega1;
+	W = U;
+	U = *this;
 	U.Laplace(mat1,1,-1,-1);
-	K = U*nu - W;
-	K = K*tau;
-	return K;
+	*this = U*nu - W;
+	*this = (*this)*tau;
+	return norm;
 }
 
 

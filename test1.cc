@@ -1,4 +1,11 @@
 
+/**
+* @file test1.cc
+* @brief 测试函数
+* @author hh
+* @version 1
+* @date 2018-06-06
+*/
 //
 
 #include "Mymat.h"
@@ -64,6 +71,13 @@ int main(int argc, char** argv)
 	mat1.inposition();
 	mat1.getplan();
 
+
+//	U.getF(N);
+//	U.myprint(0,0);
+//	int num = U.norm_inf();
+//	double norm = fabs(U.ele[num]);
+//	std::cout << num << ' ' << norm << std::endl;
+
 //// Nabla \times u
 //	U.getF(N);
 //	U.NablaTimes(V,W,mat1,-1,-1);
@@ -79,19 +93,19 @@ int main(int argc, char** argv)
 //	V.myprint(0,2);
 
 
-////f= cosx*siny*sinz  laplace(f)=-3f
-//	U.getF(N);
-//	V = U*(-3);
-//	U.Laplace(mat1,1,-1,-1);
-//	U.myprint(0,1);
-//	V.myprint(0,2);
+//f= cosx*siny*sinz  laplace(f)=-3f
+	U.getF(N);
+	V = U*(-3);
+	U.Laplace(mat1,1,-1,-1);
+	U.myprint(0,1);
+	V.myprint(0,2);
 
 ////f= cosx*siny*sinz  inverselaplace(f)=-f/3
-	U.getF(N);
-	V = U*(-1.0/3);
-	V.myprint(0,2);
-	U.InverseLaplace(mat1,1,-1,-1);
-	U.myprint(0,1);
+//	U.getF(N);
+//	V = U*(-1.0/3);
+//	V.myprint(0,2);
+//	U.InverseLaplace(mat1,1,-1,-1);
+//	U.myprint(0,1);
 
 
 ////i=1,-1  u=cosx,sinx 求导
