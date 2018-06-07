@@ -1,11 +1,11 @@
-/*
+
+/**
 * @file Mymat.cc
-* @brief class Mymat implement
+* @brief bisic operator
 * @author hh
-* @version 0
-* @date 2017-12-09
+* @version 18-6-7
+* @date 2018-06-07
 */
-//
 
 
 #include "Mymat.h"

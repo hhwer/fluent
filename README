@@ -1,0 +1,12 @@
+
+通过mpirun -np size ./test,out N max进行计算
+其中size为进程数,N为采点规模的一半,max为迭代步数
+只支持size=(int a)^3 且满足a^2整除N
+若不带参数,则默认N=4,max=10000
+
+make命令自动编译,且运行N=4
+运行结果存储在四个txt中,分别为norm值,以及最大点的位置
+
+dealdata.cc 文件将数据进行处理
+
+

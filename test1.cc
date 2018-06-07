@@ -1,5 +1,5 @@
 
-#define NN  2760
+#define NN 1000
 
 /**
 * @file test1.cc
@@ -73,71 +73,9 @@ int main(int argc, char** argv)
 	mat1.inposition();
 	mat1.getplan();
 
-if(myid==0){
-	std::ifstream infile;
-	std::ofstream outfile;
-	infile.open("normW.txt",std::ios::in);
-	
-	if(!infile.is_open())
-		std::cout << "open infile failure" << std::endl;
 
-	double num[NN];
-	int i =0;
-	while(!infile.eof())
-	{
-		infile >> num[i];
-		i++;
-	}
-	infile.close();
-	
-	outfile.open("logW.txt",std::ios::app);
-	if(!outfile.is_open())
-		std::cout << "open file failure" << std::endl;
-	for(int i =0;i<NN-1;i++)
-	{
-		outfile << log(num[i+1])-log(num[i]) << std::endl;		
-	}
-	outfile.close();
-	
-	outfile.open("slopeW.txt",std::ios::app);
-	if(!outfile.is_open())
-		std::cout << "open file failure" << std::endl;
-	for(int i =0;i<NN-1;i++)
-	{
-		outfile << num[i+1]-num[i] << std::endl;		
-	}
-	outfile.close();
-	infile.open("normU.txt",std::ios::in);
-	
-	if(!infile.is_open())
-		std::cout << "open infile failure" << std::endl;
 
-	i=0;
-	while(!infile.eof())
-	{
-		infile >> num[i];
-		i++;
-	}
-	infile.close();
-	
-	outfile.open("logU.txt",std::ios::app);
-	if(!outfile.is_open())
-		std::cout << "open file failure" << std::endl;
-	for(int i =0;i<NN-1;i++)
-	{
-		outfile << log(num[i+1])-log(num[i]) << std::endl;		
-	}
-	outfile.close();
-	
-	outfile.open("slopeU.txt",std::ios::app);
-	if(!outfile.is_open())
-		std::cout << "open file failure" << std::endl;
-	for(int i =0;i<NN-1;i++)
-	{
-		outfile << num[i+1]-num[i] << std::endl;		
-	}
-	outfile.close();
-}
+
 //	U.getF(N);
 //	U.myprint(0,0);
 //	int num = U.norm_inf();

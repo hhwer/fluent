@@ -21,6 +21,8 @@ clean:
 	rm *.o *.out *.txt
 clean1:
 	rm  *.txt
+clean2:
+	rm  slope* log*
 gdb: main.cc Mymat.cc FMymat.cc factor.cc value.cc Mymat.h
 	mpic++ -g -o test.out main.cc FMymat.cc Mymat.cc factor.cc value.cc Mymat.h -lfftw3  -Wall -std=c++14
 run: 

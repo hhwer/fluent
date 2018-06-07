@@ -1,4 +1,12 @@
 
+/**
+* @file value.cc
+* @brief 初值函数
+* @author hh
+* @version 19-6-7
+* @date 2018-06-07
+*/
+
 #include "Mymat.h"
 
 

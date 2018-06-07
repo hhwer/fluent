@@ -1,3 +1,10 @@
+/**
+* @file Mymat.h
+* @brief 
+* @author hh
+* @version 18-6-8
+* @date 2018-06-07
+*/
 
 
 #ifndef __MYMAT_H

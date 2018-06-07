@@ -1,4 +1,13 @@
 
+/**
+* @file FMymat.cc
+* @brief 3d operation
+* @author hh
+* @version 18-6-7
+* @date 2018-06-07
+*/
+
+
 #include "Mymat.h"
 
 

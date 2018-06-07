@@ -1,4 +1,11 @@
 //
+/**
+* @file main.cc
+* @brief 3dINS
+* @author hh
+* @version 19-6-7
+* @date 2018-06-07
+*/
 
 #include "Mymat.h"
 
@@ -16,12 +23,17 @@ int main(int argc, char** argv)
 	double norm1,norm2;
 	myid = MPI::COMM_WORLD.Get_rank();
 	totalsize = MPI::COMM_WORLD.Get_size();
-	double tau=1, nu=0;
+	double tau=0.01, nu=0;
 	int N=pow(2,2);
 	Max = 10000;
 	if(argc>1)
 	{
 		N = atoi(argv[1]);
+		if(N>=200)
+		{	
+			std::cout <<" too big N"<< std::endl;
+			exit(0);
+		}
 		if(argc>2)
 			Max = atoi(argv[2]);
 	}
@@ -161,7 +173,7 @@ int main(int argc, char** argv)
 			fp<<std::setprecision(6)<<(num0/size/size*n+num1/n/n+0.5)*M_PI/N<<std::endl;
 			fp.close();
 			fp.open("normU.txt",std::ios::app);
-			fp<<std::setprecision(16)<<norm1<<std::endl;
+			fp<<std::setprecision(32)<<norm1<<std::endl;
 //			fp<<log(norm1)<<std::endl;
 			fp.close();
 		}
@@ -186,7 +198,7 @@ int main(int argc, char** argv)
 			fp<<std::setprecision(6)<<(num0/size/size*n+num1/n/n+0.5)*M_PI/N<<std::endl;
 			fp.close();
 			fp.open("normW.txt",std::ios::app);
-			fp<<std::setprecision(16)<<norm1<<std::endl;
+			fp<<std::setprecision(32)<<norm1<<std::endl;
 //			fp<<log(norm1)<<std::endl;
 			fp.close();
 		}
